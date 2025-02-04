@@ -5,6 +5,8 @@ Start Date: 1/17/24
 End Date: 
 Course: CPT_S322
 
+Language: C#
+
 Objective:
   Design a roommate finder application which allows a user to sumbit their preferences related to their living enviornment, this can be saved as an object
   in class Roommate. Then in order to evaluate if two roommates share similar preferences, an algorithm returns a weighted value representing the similarities of
