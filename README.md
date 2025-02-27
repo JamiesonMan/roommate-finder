@@ -5,7 +5,7 @@ Start Date: 1/17/25
 End Date: 
 Course: CPT_S322
 
-Language: C#
+Language: Python
 
 Objective:
   Design a roommate finder application which allows a user to sumbit their preferences related to their living enviornment, this can be saved as an object
