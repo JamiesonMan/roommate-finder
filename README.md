@@ -1,7 +1,7 @@
 # roommate-finder
 A roommate finder app, to help find the best roommate.
 
-Start Date: 1/17/24
+Start Date: 1/17/25
 End Date: 
 Course: CPT_S322
 
