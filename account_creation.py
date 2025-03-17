@@ -12,22 +12,26 @@ app.config['SECRET_KEY'] = 'secretkey'
 
 CSV_FILE = "csv_database.csv"  #currently using csv database for sprint 1
 
-#im starting with empty unlabeled csv file, so it works with empty database
-if not os.path.exists(CSV_FILE):
-    with open(CSV_FILE, mode='w', newline='') as file:
+#im starting with csv file as databse, hardcoded first row headers
+#appends created account to account database
+def enter_user_to_database(user_id, username, email, hashed_password):
+
+    
+
+    with open(CSV_FILE, mode='a', newline='', encoding="utf-8-sig") as file: #had to change encoding due to flash decoding error
         writer = csv.writer(file)
-        writer.writerow(["id", "username", "email", "hashed_password"]) #just including what I need for account_creation, will need preferences dict,etc...
+        #just including what I need for account_creation, will need preferences dict,etc...
+        writer.writerow([user_id, username, email, hashed_password]) 
 
 #getting users and data from database to list in case of validating or future deleting/editing maybe
 def get_existing_users():
     """ Reads the CSV file and returns a list of existing users. """
     users = []
-    if os.path.exists(CSV_FILE):
-        with open(CSV_FILE, mode='r', newline='') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                if any(row.values()): #filtering out any empty rows in case DB is empty or a user gets deleted or something
-                    users.append(row) #going to append entire row vs just username in case adding email paswd recovery later
+    with open(CSV_FILE, mode='r', newline='', encoding="utf-8-sig") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if any(row.values()): #filtering out any empty rows in case DB is empty or a user gets deleted or something
+                users.append(row) #going to append entire row vs just username in case adding email paswd recovery later
     return users
 
 #for validating if new accounts match existing password/email
@@ -52,12 +56,12 @@ def get_next_user_id():
 
 # Flask form
 class AccountCreationForm(FlaskForm):
-    username = StringField('Username', validators=[
+    username = StringField('username', validators=[
         DataRequired(),  
         Length(min=3, max=30, message="Between 3 and 30 characters.")
     ])
-    email = StringField('Email', validators=[Optional()])  #email is for password recovery and optional at this time
-    password = PasswordField('Password', validators=[
+    email = StringField('email', validators=[Optional()])  #email is for password recovery and optional at this time
+    password = PasswordField('password', validators=[
         DataRequired(), #user and password is required, else page will refresh and alert user
         Length(min=6, max=25, message="Between 6 and 25 characters long.")
     ])
@@ -76,6 +80,7 @@ def create_account():
             email = "" #store as empty string in DB if user doesnt provide email
         password = form.password.data
 
+
         #Making sure new account user/email doesnt already exist
         if username_or_email_exists(username, email):
             flash("Username or email already registered, please choose another.", "error")
@@ -88,12 +93,10 @@ def create_account():
         user_id = get_next_user_id()
 
         #Append the new account to the database
-        with open(CSV_FILE, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([user_id, username, email, hashed_password])
+        enter_user_to_database(user_id, username, email, hashed_password)
 
         flash("Account created successfully!", "success")
-        return redirect(url_for('home'))  # Redirect after successful creation
+        return redirect(url_for('home'))  #Redirect after successful creation to homepage
 
     return render_template('account_creation.html', form=form)
 
