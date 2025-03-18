@@ -7,6 +7,14 @@
 
     <h1>Account Creation</h1>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class= "flash-message {{ category }}" > {{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <!-- Ensures requirements are met and will alert user if not -->
     {% if form.username.errors or form.password.errors %}
     <p>Password or username does not meet length requirements, please try again:</p>
@@ -24,7 +32,7 @@
         {{ form.hidden_tag() }}
         <!-- Clears the text from the offending box -->
         <p>Username (3-30 characters):</p>
-        {{ form.username(value="") }} 
+        {{ form.username(value="") }}
 
         <p>Email (optional):</p>
         {{ form.email(value="") }}

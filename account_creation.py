@@ -12,7 +12,7 @@ app.config['SECRET_KEY'] = 'secretkey'
 
 CSV_FILE = "csv_database.csv"  #currently using csv database for sprint 1
 
-#im starting with csv file as databse, hardcoded first row headers
+#im starting with csv file as database, hardcoded first row headers
 #appends created account to account database
 def enter_user_to_database(user_id, username, email, hashed_password):
 
@@ -84,7 +84,7 @@ def create_account():
         #Making sure new account user/email doesnt already exist
         if username_or_email_exists(username, email):
             flash("Username or email already registered, please choose another.", "error")
-            return render_template('account_creation.html', form=form)
+            return redirect(url_for('create_account'))
 
         #Hash password for non plaintext storage
         hashed_password = generate_password_hash(password)
@@ -96,7 +96,7 @@ def create_account():
         enter_user_to_database(user_id, username, email, hashed_password)
 
         flash("Account created successfully!", "success")
-        return redirect(url_for('home'))  #Redirect after successful creation to homepage
+        return redirect(url_for('home'))  #Redirect after successful creation to homepage, (should take user to login page if thats not the homepage)
 
     return render_template('account_creation.html', form=form)
 
