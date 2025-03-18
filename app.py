@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash #for h
 import csv
 import os
 from account_creation import AccountCreationForm, username_or_email_exists, get_next_user_id, enter_user_to_database 
+from login import username_exists, get_userID, checkPassword
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey' 
@@ -17,21 +18,24 @@ users = {
     "admin": "adminpass"
 }
 
+@app.route('/')
+def home_page():
+    return render_template('index.html')
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
 
-        if username in users:
-            if users[username] == password:
-                session["user"] = username  # Store user session
+        if username_exists(username):
+            if checkPassword(get_userID(username), password):
+                session["user"] = username
                 return redirect(url_for("dashboard"))
             else:
                 flash("Password incorrect", "error")
         else:
             flash("Unregistered user", "error")
-
     return render_template("login.html")
 
 @app.route("/dashboard")
@@ -75,10 +79,10 @@ def create_account():
         enter_user_to_database(user_id, username, email, hashed_password)
 
         flash("Account created successfully!", "success")
-        return redirect(url_for('home_page'))  #Redirect after successful creation to homepage, (should take user to login page if thats not the homepage)
+        return redirect(url_for('login'))  #Redirect after successful creation to homepage, (should take user to login page if thats not the homepage)
 
     return render_template('account_creation.html', form=form)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run()
 
