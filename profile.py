@@ -1,3 +1,5 @@
+# This file was created with some help from Chat GPT.
+
 class Profile:
     """
     Represents a user's profile in the Roommate Finder App.
@@ -36,7 +38,7 @@ class Profile:
             "Bio": self.bio,
             "Looking for Roommate": self.looking_status
         }
-        return profile_info
+        return profile_info # returns a dict that we will jsonify
 
     def update_status(self, new_status):
         if isinstance(new_status, bool):
