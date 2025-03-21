@@ -16,12 +16,15 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST">
+    <form method="POST" action="/login">
+        
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required><br><br>
 
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required><br><br>
+
+        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />  
 
         <button type="submit">Log In</button>
     </form>

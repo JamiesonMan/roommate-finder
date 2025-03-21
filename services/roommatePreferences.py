@@ -2,32 +2,15 @@ from datetime import datetime, timedelta
 from flask_wtf import FlaskForm
 from wtforms import TimeField, SelectField, IntegerField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
+import csv
 
 #class to hold user preference information while logged in for easy acess and calculations
 class roommatePreferences:
     #iconstructor for the Preferences Class. Will add userID attribute once account creation is done
-    def __init__(self, userID = "0000", quiet_score=0, location_status="empty", location_score=0, dorm_status="empty", dorm_score=0, animal_status="empty", animal_score=0, visitor_status="empty", cleanliness_score="empty", bed_time="0:00", drinking_status="no", smoking_status="no", smoking_score=0, drinking_score=0, visitor_score=0, bedtime_score=0, allergy_status="no", allergy_score=0):
+    def __init__(self, userID = 0, quiet_score=0, location_status="empty", location_score=0, dorm_status="empty", dorm_score=0, animal_status="empty", animal_score=0, visitor_status="empty", cleanliness_score="empty", bed_time="0:00", drinking_status="no", smoking_status="no", smoking_score=0, drinking_score=0, visitor_score=0, bedtime_score=0, allergy_status="no", allergy_score=0):
         self.userID = userID
-        self.cleanliness_score = cleanliness_score
-        self.bed_time = bed_time
-        self.drinking_status = drinking_status
-        self.smoking_status = smoking_status
-        self.smoking_score = smoking_score
-        self.drinking_score = drinking_score
-        self.visitor_status = visitor_status
-        self.visitor_score = visitor_score
-        self.bedtime_score = bedtime_score
-        self.allergy_status = allergy_status
-        self.allergy_score = allergy_score
-        self.animal_status = animal_status
-        self.animal_score = animal_score
-        self.dorm_status = dorm_status
-        self.dorm_score = dorm_score
-        self.location_status = location_status
-        self.location_score = location_score
-        self.quiet_score = quiet_score
-
-    def updatePreferences(self, quiet_score, location_status, location_score, dorm_status, dorm_score, animal_status, animal_score, visitor_status, cleanliness_score, bed_time, drinking_status, smoking_status, smoking_score, drinking_score, visitor_score, bedtime_score, allergy_status, allergy_score):
+        userPref = load_preferences("userPreferences.csv")
+        if (self.find_user(userPref) == False):
             self.cleanliness_score = cleanliness_score
             self.bed_time = bed_time
             self.drinking_status = drinking_status
@@ -46,6 +29,28 @@ class roommatePreferences:
             self.location_status = location_status
             self.location_score = location_score
             self.quiet_score = quiet_score
+
+    def updatePreferences(self, quiet_score, location_status, location_score, dorm_status, dorm_score, animal_status, animal_score, visitor_status, cleanliness_score, bed_time, drinking_status, smoking_status, smoking_score, drinking_score, visitor_score, bedtime_score, allergy_status, allergy_score):
+            userPref = load_preferences("userPreferences.csv")
+            self.cleanliness_score = cleanliness_score
+            self.bed_time = bed_time
+            self.drinking_status = drinking_status
+            self.smoking_status = smoking_status
+            self.smoking_score = smoking_score
+            self.drinking_score = drinking_score
+            self.visitor_status = visitor_status
+            self.visitor_score = visitor_score
+            self.bedtime_score = bedtime_score
+            self.allergy_status = allergy_status
+            self.allergy_score = allergy_score
+            self.animal_status = animal_status
+            self.animal_score = animal_score
+            self.dorm_status = dorm_status
+            self.dorm_score = dorm_score
+            self.location_status = location_status
+            self.location_score = location_score
+            self.quiet_score = quiet_score
+            self.update_user(userPref)
 
     #computes two users compatability
     def compute_compatability(self, user2):
@@ -233,7 +238,56 @@ class roommatePreferences:
         elif(abs(self.cleanliness_score - user2.cleanliness_score) == 5):
             compatability_score +=0
         return compatability_score
+
+    def find_user(self, userPreferences):
+        for pref in userPreferences:
+            if(pref.get("userID") == self.userID):
+                self.updatePreferences(pref["quiet_score"], pref["location_status"], pref["location_score"], pref["dorm_status"], pref["dorm_score"], pref["animal_status"], pref["animal_score"], pref["visitor_status"], pref["cleanliness_score"], pref["bed_time"], pref["drinking_status"], pref["smoking_status"], pref["smoking_score"], pref["drinking_score"], pref["visitor_score"], pref["bedtime_score"], pref["allergy_status"], pref["allergy_score"])
+                return True
+        return False
     
+    def update_user(self, userPreferences):
+        for pref in userPreferences:
+            if(pref.get("userID") == self.userID):
+                pref["quiet_score"] = self.quiet_score
+                pref["location_status"] = self.location_status
+                pref["location_score"] = self.location_score
+                pref["dorm_status"] = self.dorm_status
+                pref["dorm_score"] = self.dorm_score
+                pref["animal_status"] = self.animal_status
+                pref["animal_score"] = self.animal_score
+                pref["visitor_status"] = self.visitor_status
+                pref["cleanliness_score"] = self.cleanliness_score
+                pref["bed_time"] = self.bed_time
+                pref["drinking_status"] = self.drinking_status
+                pref["smoking_status"] = self.smoking_status
+                pref["smoking_score"] = self.smoking_score
+                pref["drinking_score"] = self.drinking_score
+                pref["visitor_score"] = self.visitor_score
+                pref["bedtime_score"] = self.bedtime_score
+                pref["allergy_status"] = self.allergy_status
+                pref["allergy_score"] = self.allergy_score
+        self.save_preferences(userPreferences, "userPreferences.csv")
+
+
+
+    def save_preferences(self, userPreferences, file):
+        with open(file, mode='w', newline='') as csvfile:
+            fieldnames = userPreferences[0].keys()
+            writer= csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(userPreferences)
+
+    
+def load_preferences(filename):
+        userPreferences= []
+        with open(filename, mode='r', newline='') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if any(row.values()):
+                    userPreferences.append(row)
+        return userPreferences
+
 #class for the preferences form to validate form entries uses flask-WTF use pip install Flask-WTF
 class preferenceForm(FlaskForm):
         bed_time = TimeField('What time do you plan to go to bed?', validators=[DataRequired()])

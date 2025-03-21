@@ -5,7 +5,7 @@ from wtforms.validators import DataRequired, Length, Optional
 from werkzeug.security import generate_password_hash, check_password_hash #for hashing the password for database storage
 import csv
 import os
-from account_creation import get_existing_users
+from services.account_creation import get_existing_users
 
 def username_exists(username):
     users = get_existing_users()
