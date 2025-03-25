@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>User Preferences:RoomMate</title>
+</head>
+<body>
+    
+    <h1>Roommate Preferences</h1>
+
+    <form method ="POST" action="{{ url_for('prefPage') }}">
+        {{ form.hidden_tag() }}
+
+    {% set headings = {
+        "bed_time": "Please answer some questions about yourself",
+        "cleanliness_score": "Rate Your Preferences from 0 (Don't Care) to 5 (Care a Lot)",
+        "allergy_status": "Allergy Accommodation"
+    } %}
+
+    {% for field in form if field.widget.input_type != "hidden" %}
+            {% if field.name in headings %}
+                <h2>{{ headings[field.name] }}</h2>
+            {% endif %}
+
+            {% if field.type != "SubmitField" %}
+             {{ field.label }}
+            {% endif %}
+            {{ field }}
+
+            {% if field.errors %}
+                <div style="color:red">
+                    {% for error in field.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <br>
+    {% endfor %}
+    </form>
+    <button id="home" type = "button" onclick= "window.location.href='/' ; " class="button">Return Home</button>
+</body>
+</html>
