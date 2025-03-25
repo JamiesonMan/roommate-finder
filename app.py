@@ -40,7 +40,7 @@ def update_profile():
 
     profile_picture = request.files.get('profilePicture')
 
-    # Uses OS library to create a static folder and put a copy of the selected profile picture in.
+    # Uses OS library to create a static folder and put a copy of the selected profile picture in project folder for now.
     if profile_picture:
         image_path = os.path.join('static', 'profile_pictures', profile_picture.filename)
         profile_picture.save(image_path)
