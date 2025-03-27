@@ -33,7 +33,7 @@
 </head>
 <body>
     <h1>Update Profile</h1>
-    <form onsubmit="event.preventDefault(); updateProfile();" method="POST">
+    <form action="/update_profile" method="POST" enctype="multipart/form-data">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required><br>
 
@@ -45,6 +45,8 @@
 
         <label for="lookingStatus">Looking for a roommate:</label>
         <input type="checkbox" id="lookingStatus" name="lookingStatus"><br>
+
+        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />  
 
         <button type="submit">Update Profile</button>
     </form>
