@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Account Recovery</title>
+</head>
+<body>
+
+    <h1>Recover Your Account</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+              <p style="color: red;">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <p>
+        Please enter the email address you created the account with for a password reset link.
+        If you did not register an email, you must create a new account.
+    </p>
+
+    <form method="POST" action="{{ url_for('recover_account') }}">
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <br>
+    <a href="{{ url_for('home_page') }}">Back to Home</a>
+
+</body>
+</html>

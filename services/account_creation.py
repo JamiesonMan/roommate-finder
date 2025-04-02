@@ -51,6 +51,23 @@ def get_next_user_id():
 
     return 1  #If empty database, first ID will be 1
 
+#For password recovery, entering users new password into appropriate row in database
+def update_user_password(email, new_hashed_password):
+    users = get_existing_users()
+    updated = False
+
+    with open(CSV_FILE, mode='w', newline='', encoding='utf-8-sig') as file:
+        writer = csv.DictWriter(file, fieldnames=["id", "username", "email", "password"])
+        writer.writeheader()
+        for user in users:
+            if user["email"].strip().lower() == email:
+                user["password"] = new_hashed_password
+                updated = True
+            writer.writerow(user)
+
+    return updated
+
+
 
 # Flask form
 class AccountCreationForm(FlaskForm):
@@ -64,3 +81,12 @@ class AccountCreationForm(FlaskForm):
         Length(min=6, max=25, message="Between 6 and 25 characters long.")
     ])
     submit = SubmitField('Create Account')
+
+
+# Flask form for reset password html page
+class PasswordResetForm(FlaskForm):
+    password = PasswordField('New Password', validators=[
+        DataRequired(),
+        Length(min=6, max=25, message="Password must be between 6 and 25 characters.")
+    ])
+    submit = SubmitField('Reset Password')
