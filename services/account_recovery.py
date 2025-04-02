@@ -11,7 +11,7 @@ def send_reset_email(email, reset_link, username):
     smtp_pass = "000cef743a6709"
 
     msg = MIMEText(f"""Hello,\n\n
-    To reset your password click the link below.\n In case you forgot youre username it is listed below.
+    To reset your password click the link below.\n In case you forgot your username it is listed below.
     Your username: {username}
     Reset your password using the link below:\n
     {reset_link}""")
