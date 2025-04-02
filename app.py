@@ -6,7 +6,7 @@ from wtforms.validators import DataRequired, Length, Optional
 from werkzeug.security import generate_password_hash, check_password_hash #for hashing the password for database storage
 import csv
 import os
-from services.account_creation import AccountCreationForm, username_or_email_exists, get_next_user_id, enter_user_to_database, get_existing_users, update_user_password, PasswordResetForm
+from services.account_creation import AccountCreationForm, username_or_email_exists, get_next_user_id, enter_user_to_database, get_existing_users, update_user_password, PasswordResetForm, get_username_by_email
 from services.login import username_exists, get_userID, checkPassword
 from services.roommatePreferences import roommatePreferences, preferenceForm
 from services.account_recovery import send_reset_email
@@ -194,9 +194,10 @@ def recover_account():
         email = request.form['email'].strip().lower()
 
         if username_or_email_exists("", email): 
+            username = get_username_by_email(email)
             reset_link = url_for('reset_password', email=email, _external=True) #creates the reset link that sends user to reset page
+            send_reset_email(email, reset_link, username)
 
-            send_reset_email(email, reset_link)
             flash("A reset link has been sent to your email.", "info")
         else:
             flash("Email does not exist in our system. Try again or create a new account.", "info")

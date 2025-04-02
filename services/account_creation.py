@@ -40,6 +40,14 @@ def username_or_email_exists(username, email):
             return True
     return False
 
+#for finding username associated with email in case user forgets
+def get_username_by_email(email):
+    users = get_existing_users()
+    for user in users:
+        if user["email"].strip().lower() == email.strip().lower():
+            return user["username"]
+    return None
+
 
 #pretty sure a user ID will come in handy, so +1 to highest/last ID in database
 def get_next_user_id():
