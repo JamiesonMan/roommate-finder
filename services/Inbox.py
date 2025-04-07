@@ -49,18 +49,35 @@ class RoommateAgreement:
             data['party2Signature']
         )
 
+# False means we are accepting the request, true means we deny it.
+# Code 0 - Accepting request.
+# Code 1 - Signed by both.
+# Code 2 - Person requesting (user1) has already signed.
+# Code 3 - Person requesting (user2) has already signed.
+# Code 4 - Person requesting hasn't signed an already existing pending agreement between this individual.
 
 def checkForExists(agreements, username, recipient):
-    for agreement in agreements.values():
-        if ((agreement.user1 == username and agreement.user2 == recipient) or
-                (agreement.user1 == recipient and agreement.user2 == username)):
+    if not agreements:
+        return {"val": False, "code": 0, "rmaID" : "DNE"} # No agreements so no chance for it already existing.
+    else:
+        for agreement in agreements.values():
+            rmaID = agreement.rmaID
+            if ((agreement.user1 == username and agreement.user2 == recipient) or
+                    (agreement.user1 == recipient and agreement.user2 == username)):
 
-            # Check if both signatures exist (truthy)
-            if agreement.user1Signature == 'True' and agreement.user2Signature == 'True':
-                return True  # Fully signed by both users
+                # Check if both signatures exist (truthy)
+                if agreement.user1Signature == 'True' and agreement.user2Signature == 'True':
+                    return {"val": True, "code": 1, "rmaID" : rmaID}  # Fully signed by both users
+                elif username == agreement.user1 and agreement.user1Signature == 'True':
+                    return {"val": True, "code": 2, "rmaID" : rmaID} # Person requesting it has already signed.
+                elif username == agreement.user2 and agreement.user2Signature == 'True':
+                    return {"val": True, "code": 3, "rmaID" : rmaID} # Same thing but incase requester is cataloged as user2 in cvs.
+                else:
+                    return {"val": True, "code": 4, "rmaID" : rmaID} # Since the agreement already exists, this is the recipient who is unaware there is a RMA waiting for there signature with this person already.
+                
             else:
-                return False
-    return False
+                return {"val": False, "code": 0, "rmaID" : rmaID} # There exist agreements, however this particular one doesn't exist yet.
+        
 
 class Chat:
     def __init__(self, chatID, user1, user2, messages):

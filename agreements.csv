@@ -1,3 +1,2 @@
 rmaID,user1,user2,party1Signature,party2Signature
-1,peter,john,True,False
-2,john,peter,True,False
+1,peter,john,True,True

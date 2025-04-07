@@ -23,6 +23,7 @@ agreements = {}
 
 csrf = CSRFProtect(app)
 
+# Note for Jamieson. Next step is to add a notification system when first entering inbox. Read agreements.csv, see if this user has a pending signature. Then notify.
 
 @app.route('/inbox')
 def inbox():
@@ -57,25 +58,37 @@ def new_agreement():
         returnCodeRMA = request.args.get('errorCode', type=int)
 
         if returnCodeRMA == 1:
-            flash('Agreement exists already', 'error')
+            flash('Agreement exists already...', 'error')
         elif returnCodeRMA == 2:
-            flash('Username doesnt exist...', 'success')
+            flash('Username doesnt exist or is same as whos signed in...', 'success')
 
         if request.method == 'POST':
             recipientRMA = request.form.get('recipient-RMA')
 
             if username_exists(recipientRMA):
-
+                if recipientRMA == username:
+                    return redirect(url_for('new_agreement', errorCode=2)) # username is same as recipient
                 # We make a new RMA connection between the users.
-                if checkForExists(agreements, username, recipientRMA) == False:
-                    rmaID = len(agreements) + 1
+
+                # False means we are accepting the request, true means we deny it.
+                # KEY FOR CheckForExists() returns a dictionary {"val": Bool, "code": int}
+                    # Code 0 - Accepting request.
+                    # Code 1 - Signed by both.
+                    # Code 2 - Person requesting (user1) has already signed.
+                    # Code 3 - Person requesting (user2) has already signed.
+                    # Code 4 - Person requesting hasn't signed and already existing pending agreement between this individual.
+                if checkForExists(agreements, username, recipientRMA)["code"] == 0:
+                    rmaID = len(agreements) + 1 # Form new rmaID
 
                     new_rma = RoommateAgreement(rmaID=rmaID, user1=username, user2=recipientRMA, user1Signature=False, user2Signature=False)
 
                     agreements[rmaID] = new_rma
 
                     return redirect(url_for('roommate_agreement', rmaID=rmaID))
-
+                elif checkForExists(agreements, username, recipientRMA)["code"] == 4:
+                    rmaID = checkForExists(agreements, username, recipientRMA)["rmaID"]
+                    
+                    return redirect(url_for('roommate_agreement', rmaID=rmaID)) # redirect to the agreement page with the rmaID
                 else:
                     return redirect(url_for('new_agreement', errorCode=1)) # This agreement from already exists
             else:
@@ -379,4 +392,3 @@ def view_profile():
 
 if __name__ == "__main__":
     app.run()
-
