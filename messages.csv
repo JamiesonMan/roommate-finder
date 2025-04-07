@@ -25,3 +25,7 @@ chatID,messageID,messageContents,sender,receiver,timeSent
 1,24,testing,test1,integration_test,2025-04-06 10:56:43
 2,1,hello,test1,test1,2025-04-06 11:02:11
 3,1,hello JAM test,test1,Jam,2025-04-06 12:21:47
+4,1,Hi,john,peter,2025-04-07 14:29:22
+4,2,yo its peter,peter,john,2025-04-07 14:29:56
+4,3,p,peter,john,2025-04-07 14:30:50
+4,4,d,john,peter,2025-04-07 14:30:53
