@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Agreement</title>
+</head>
+<body>
+    <h1>WSU Roommate Agreement</h1>
+
+    <p>I, {{ username }}, will uphold the responsibilities of a tenant at a WSU dorm. I, {{ username }}, will abide by any rules according to the WSU housing and board comity. I, {{ username }} understand that I will be found liable for any damages to the room. I, {{ username }} agree to have {{ otherUser }} be my roommate.</p>
+
+    <form method="POST" action="{{ url_for('agreement_submit') }}">
+    <input type="text" id="signature" name="signature" placeholder="Type your signature..." required>
+
+    <input type="hidden" name="rmaID" value="{{ rmaID }}">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit">Sign</button>
+</form>
+
+</body>

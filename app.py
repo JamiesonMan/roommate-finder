@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
 from wtforms import StringField, PasswordField, SubmitField
@@ -6,20 +7,227 @@ from wtforms.validators import DataRequired, Length, Optional
 from werkzeug.security import generate_password_hash, check_password_hash #for hashing the password for database storage
 import csv
 import os
-from services.account_creation import AccountCreationForm, username_or_email_exists, get_next_user_id, enter_user_to_database 
+from services.account_creation import AccountCreationForm, username_or_email_exists, get_next_user_id, enter_user_to_database
 from services.login import username_exists, get_userID, checkPassword
 from services.roommatePreferences import roommatePreferences, preferenceForm
 import pickle #using to keep objects across different Pages
+from services.Inbox import Message, Chat, load_messages_from_csv, RoommateAgreement, load_agreements_from_csv, checkForExists, save_agreements_to_csv
+from services.profile import Profile
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+chats = {}
+agreements = {}
 
 csrf = CSRFProtect(app)
+
+
+@app.route('/inbox')
+def inbox():
+    if "user" in session:
+
+        user = pickle.loads(session["user"])
+        username = user["userName"]
+
+        load_messages_from_csv("messages.csv", chats)
+        load_agreements_from_csv("agreements.csv", agreements)
+
+        returnCodeRMA = request.args.get('code', type=int)
+
+        if returnCodeRMA == 0:
+            flash('Form not signed...', 'error')
+        elif returnCodeRMA == 1:
+            flash('Form has been signed, waiting for other member.', 'success')
+        elif returnCodeRMA == 2:
+            flash('Success, form signed by both parties!', 'info')
+
+
+        return render_template('inbox.html', username=username, chats=chats.values())
+    else:
+        return redirect(url_for("login"))
+
+@app.route('/new_agreement', methods=['GET', 'POST'])
+def new_agreement():
+    if "user" in session: # get session data
+        user = pickle.loads(session["user"])
+        username = user["userName"]
+
+        returnCodeRMA = request.args.get('errorCode', type=int)
+
+        if returnCodeRMA == 1:
+            flash('Agreement exists already', 'error')
+        elif returnCodeRMA == 2:
+            flash('Username doesnt exist...', 'success')
+
+        if request.method == 'POST':
+            recipientRMA = request.form.get('recipient-RMA')
+
+            if username_exists(recipientRMA):
+
+                # We make a new RMA connection between the users.
+                if checkForExists(agreements, username, recipientRMA) == False:
+                    rmaID = len(agreements) + 1
+
+                    new_rma = RoommateAgreement(rmaID=rmaID, user1=username, user2=recipientRMA, user1Signature=False, user2Signature=False)
+
+                    agreements[rmaID] = new_rma
+
+                    return redirect(url_for('roommate_agreement', rmaID=rmaID))
+
+                else:
+                    return redirect(url_for('new_agreement', errorCode=1)) # This agreement from already exists
+            else:
+                return redirect(url_for('new_agreement', errorCode=2)) # username DNE
+        return render_template('newChat.html', username=username)
+
+    else:
+        return redirect(url_for("login"))
+
+
+@app.route('/new_chat', methods=['GET', 'POST'])
+def new_chat():
+    if "user" in session:
+
+        user = pickle.loads(session["user"])
+        username = user["userName"]
+
+        if request.method == 'POST':
+            recipient = request.form.get('recipient')
+
+            if username_exists(recipient):
+                chatID = len(chats) + 1
+                new_chat = Chat(chatID=chatID, user1=username, user2=recipient, messages=[])
+                chats[chatID] = new_chat
+
+                return redirect(url_for('chat_messages', chatID=chatID))
+
+        return render_template('newChat.html', username=username)
+    else:
+        return redirect(url_for("login"))
+
+@app.route('/roommate_agreement/<rmaID>', methods=['GET', 'POST'])
+def roommate_agreement(rmaID):
+    if "user" in session:
+        user = pickle.loads(session["user"])
+        username = user["userName"]
+
+        return render_template('agreement.html', username=username, rmaID=rmaID)
+
+    else:
+        return redirect(url_for("login"))
+
+@app.route('/agreement_submit', methods=['GET', 'POST'])
+def agreement_submit():
+    returnCode = -1
+
+    if "user" in session:
+        user = pickle.loads(session["user"])
+        username = user["userName"]
+    else:
+        return redirect(url_for("login"))
+
+    if request.method == 'POST':
+        signature = request.form.get('signature')
+        rmaID = int(request.form.get('rmaID'))
+
+        if signature == username and rmaID in agreements:
+            agreement = agreements[rmaID]
+
+            if username == agreement.user1:
+                agreement.user1Signature = True
+                returnCode = 2 if agreement.user2Signature else 1
+            elif username == agreement.user2:
+                agreement.user2Signature = True
+                returnCode = 2 if agreement.user1Signature else 1
+
+            # Save updated state to CSV (overwrite entire file)
+            save_agreements_to_csv('agreements.csv', agreements)
+
+            return redirect(url_for("inbox", code=returnCode))
+
+    return redirect(url_for("inbox"))
+
+@app.route('/chat_messages/<chatID>', methods=['GET', 'POST'])
+def chat_messages(chatID):
+    if "user" in session:
+        user = pickle.loads(session["user"])
+        username = user["userName"]
+
+        for chat in chats.values():
+            if chat.chatID == int(chatID):
+                if chat.user1 == username:
+                    receiver = chat.user2
+                    break
+                else:
+                    receiver = chat.user1
+                    break
+
+        messages_dict = [msg.to_dict() for msg in chat.messages]
+
+        return render_template('chat.html', username=username, chatID=chatID, otherUser=receiver,
+                               messages=messages_dict)
+    else:
+        return redirect(url_for("login"))
+
+
+@socketio.on('join')
+def on_join(data):
+    chatID = data['chatID']
+    join_room(int(chatID))
+
+
+@socketio.on('message')
+def handle_message(data):
+    chatID = int(data['chatID'])
+    sender = data['sender']
+    receiver = data['receiver']
+    messageContents = data['message']
+
+    if chatID not in chats:
+        chats[chatID] = Chat(chatID, sender, receiver)
+
+    new_message = chats[chatID].newMessage(messageContents, sender)
+
+    with open("messages.csv", mode='a', newline='', encoding='utf-8') as file:
+        fieldnames = ['chatID', 'messageID', 'messageContents', 'sender', 'receiver', 'timeSent']
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        if os.stat("messages.csv").st_size == 0:
+            writer.writeheader()
+        writer.writerow({
+            'chatID': new_message.chatID,
+            'messageID': new_message.messageID,
+            'messageContents': new_message.messageContents,
+            'sender': new_message.sender,
+            'receiver': new_message.receiver,  # Fix typo if necessary
+            'timeSent': new_message.timeSent.strftime('%Y-%m-%d %H:%M:%S')  # Format datetime
+        })
+
+    emit('receive_message', {
+        "chatID": chatID,
+        "sender": sender,
+        "messageContents": messageContents
+    }, room=chatID)
+
+
+# Ensure static directory exists for profile pictures
+    # Eventually should be localized data or stored in db
+os.makedirs("static/profile_pictures", exist_ok=True)
 
 @app.route('/')
 def home_page():
     return render_template('index.html')
 
+# Example data that we can plug in.
+profile = Profile(
+    name="Jamieson",
+    profile_picture="",
+    preferences={},
+    dealbreakers={},
+    bio="",
+    looking_status=True
+)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -136,6 +344,38 @@ def prefPage():
         else:
             return render_template('login.html')
 
+@app.route('/profile_page')
+def profile_page():
+    return render_template('profile-page.html')
+
+# /update_profile, you can only POST to not fetch.
+@app.route('/update_profile', methods=['POST'])
+def update_profile():
+    name = request.form.get('name')
+    bio = request.form.get('bio')
+    looking_status = request.form.get('lookingStatus') == 'true'
+
+    profile_picture = request.files.get('profilePicture')
+    # Uses OS library to create a static folder and put a copy of the selected profile picture in.
+    if profile_picture:
+        image_path = os.path.join('static', 'profile_pictures', profile_picture.filename)
+        profile_picture.save(image_path)
+        profile.update_profile(name=name, profile_picture=image_path, bio=bio)
+    else:
+        profile.update_profile(name=name, bio=bio)
+
+    profile.update_status(looking_status)
+
+    return jsonify({"message": "Profile updated successfully!"})
+
+@app.route('/profile_info')
+def profile_info():
+    return render_template('profile-display.html')
+
+@app.route('/view_profile')
+def view_profile():
+    profile_data = profile.view_profile()  # Uses the view_profile() method in Profile class
+    return jsonify(profile_data) # Turns the profile_data into JSON format.
 
 if __name__ == "__main__":
     app.run()

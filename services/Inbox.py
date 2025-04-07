@@ -31,6 +31,37 @@ class Message:
             datetime.strptime(data['timeSent'], '%Y-%m-%d %H:%M:%S')
         )
 
+class RoommateAgreement:
+    def __init__(self, rmaID, user1, user2, user1Signature, user2Signature):
+        self.rmaID = rmaID
+        self.user1 = user1
+        self.user2 = user2
+        self.user1Signature = user1Signature
+        self.user2Signature = user2Signature
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            int(data['rmaID']),
+            data['user1'],
+            data['user2'],
+            data['party1Signature'],
+            data['party2Signature']
+        )
+
+
+def checkForExists(agreements, username, recipient):
+    for agreement in agreements.values():
+        if ((agreement.user1 == username and agreement.user2 == recipient) or
+                (agreement.user1 == recipient and agreement.user2 == username)):
+
+            # Check if both signatures exist (truthy)
+            if agreement.user1Signature == 'True' and agreement.user2Signature == 'True':
+                return True  # Fully signed by both users
+            else:
+                return False
+    return False
+
 class Chat:
     def __init__(self, chatID, user1, user2, messages):
         self.user1 = user1
@@ -54,6 +85,31 @@ class Chat:
         self.messages.append(message)
 
         return message
+
+def load_agreements_from_csv(filename='agreements.csv', agreements=[]):
+    agreements.clear()
+    with open(filename, mode='r', newline='', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if row['rmaID'].lower() == 'rmaid':
+                continue
+            agreement = RoommateAgreement.from_dict(row)
+            agreements[agreement.rmaID] = agreement
+
+def save_agreements_to_csv(filename='agreements.csv', agreements={}):
+    with open(filename, mode='w', newline='', encoding='utf-8') as file:
+        fieldnames = ['rmaID', 'user1', 'user2', 'party1Signature', 'party2Signature']
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        for agreement in agreements.values():
+            writer.writerow({
+                'rmaID': agreement.rmaID,
+                'user1': agreement.user1,
+                'user2': agreement.user2,
+                'party1Signature': agreement.user1Signature,
+                'party2Signature': agreement.user2Signature
+            })
+
 
 def load_messages_from_csv(filename='messages.csv', chats=[]):
     chats.clear()

@@ -5,7 +5,15 @@
 </head>
 <body>
     <h2>Your Chats</h2>
-    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <h4>
+                    {{ message }}
+                </h4>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     <ul>
         {% if chats %}
             {% for chat in chats %}
