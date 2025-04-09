@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Profile</title>
+    <!--
+        This script was streamlined using AI
+        It is a JS function that fetches the JSON returned from view_profile.
+        It then fills in the elements with the JSON data.
+     -->
+    <script>
+        async function updateProfile() {
+            const name = document.getElementById('name').value;
+            const profilePicture = document.getElementById('profilePicture').files[0];
+            const bio = document.getElementById('bio').value;
+            const lookingStatus = document.getElementById('lookingStatus').checked;
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('profilePicture', profilePicture);
+            formData.append('bio', bio);
+            formData.append('lookingStatus', lookingStatus);
+
+            const response = await fetch('/update_profile', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            alert(result.message);
+        }
+    </script>
+</head>
+<body>
+    <h1>Update Profile</h1>
+    <form action="/update_profile" method="POST" enctype="multipart/form-data">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br>
+
+        <label for="profilePicture">Profile Picture:</label>
+        <input type="file" id="profilePicture" name="profilePicture"><br>
+
+        <label for="bio">Bio:</label>
+        <textarea id="bio" name="bio" rows="4"></textarea><br>
+
+        <label for="lookingStatus">Looking for a roommate:</label>
+        <input type="checkbox" id="lookingStatus" name="lookingStatus"><br>
+
+        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />  
+
+        <button type="submit">Update Profile</button>
+    </form>
+    <a href="/">Return</a>
+</body>
+</html>
