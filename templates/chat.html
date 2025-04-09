@@ -6,6 +6,7 @@
 </head>
 <body>
     <h1>Chat Room: {{ chatID }}</h1>
+    <h2>Signed in as {{ username }}</h2>
     <div id="messages">
         <script>
             console.log('Loaded Messages:', {{ messages | tojson }});

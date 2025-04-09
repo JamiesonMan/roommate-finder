@@ -4,6 +4,7 @@
     <title>Inbox</title>
 </head>
 <body>
+    <h2>Signed in as {{ username }}</h2>
     <h2>Your Chats</h2>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -30,5 +31,6 @@
     </ul>
 
     <button id="home" type = "button" onclick= "window.location.href='/new_chat' ; " class="button">New Chat</button>
+    <a href="/dashboard">Return to Dashboard</a>
 </body>
 </html>
