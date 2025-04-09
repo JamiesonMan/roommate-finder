@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Inbox</title>
+</head>
+<body>
+    <h2>Your Chats</h2>
+    
+    <ul>
+        {% if chats %}
+            {% for chat in chats %}
+                {% if chat["user1"] == username %}
+                    {% set otherUser = chat["user2"] %}
+                {% else %}
+                    {% set otherUser = chat["user1"] %}
+                {% endif %}
+                <li><a href="/chat_messages/{{ chat["chatID"] }}">{{ otherUser }}</a></li>
+            {% endfor %}
+        {% else %}
+            <li>No chats available.</li>
+        {% endif %}
+    </ul>
+
+    <button id="home" type = "button" onclick= "window.location.href='/new_chat' ; " class="button">New Chat</button>
+</body>
+</html>

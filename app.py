@@ -1,3 +1,5 @@
+
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
@@ -12,12 +14,17 @@ from services.roommatePreferences import roommatePreferences, preferenceForm
 from services.account_recovery import send_reset_email
 
 import pickle #using to keep objects across different Pages
+from services.Inbox import Message, Chat, load_messages_from_csv
 from profile import Profile
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 csrf = CSRFProtect(app)
+
+chats = {}
 
 
 # Ensure static directory exists for profile pictures
@@ -37,7 +44,6 @@ profile = Profile(
 @app.route('/')
 def home_page():
     return render_template('index.html')
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -154,6 +160,100 @@ def prefPage():
         else:
             return render_template('login.html')
 
+@app.route('/inbox')
+def inbox():
+     if "user" in session:
+
+        user = pickle.loads(session["user"])
+        username = user["userName"]
+
+        load_messages_from_csv("messages.csv", chats)
+
+        return render_template('inbox.html', username=username, chats=chats.values())
+     else:
+        return redirect(url_for("login"))
+
+@app.route('/new_chat', methods=['GET', 'POST'])
+def new_chat():
+    if "user" in session:
+
+        user = pickle.loads(session["user"])
+        username = user["userName"]
+
+        if request.method == 'POST':
+            recipient = request.form.get('recipient')
+            
+            if username_exists(recipient):
+                chatID = len(chats) + 1
+                new_chat = Chat(chatID=chatID, user1=username, user2=recipient, messages=[])
+                chats[chatID] = new_chat
+
+                return redirect(url_for('chat_messages', chatID=chatID))
+
+        return render_template('newChat.html', username=username)
+    else:
+        return redirect(url_for("login"))
+
+@app.route('/chat_messages/<chatID>', methods = ['GET', 'POST'])
+def chat_messages(chatID):
+     if "user" in session:
+        user = pickle.loads(session["user"])
+        username = user["userName"]
+
+        for chat in chats.values():
+            if chat.chatID == int(chatID):
+               if chat.user1 == username:
+                    receiver = chat.user2
+                    break
+               else:
+                   receiver = chat.user1
+                   break
+               
+        messages_dict = [msg.to_dict() for msg in chat.messages]
+
+        return render_template('chat.html', username=username, chatID=chatID, otherUser=receiver, messages=messages_dict)
+     else:
+        return redirect(url_for("login"))    
+
+@socketio.on('join')
+def on_join(data):
+    chatID = data['chatID']
+    join_room(int(chatID))
+
+@socketio.on('message')
+def handle_message(data):
+
+        chatID = int(data['chatID'])
+        sender = data['sender']
+        receiver = data['receiver']
+        messageContents = data['message']
+
+        if chatID not in chats:
+            chats[chatID] = Chat(chatID, sender, receiver)
+
+        new_message = chats[chatID].newMessage(messageContents, sender)
+        
+        with open("messages.csv", mode='a', newline='', encoding='utf-8') as file: 
+            fieldnames = ['chatID', 'messageID', 'messageContents', 'sender', 'receiver', 'timeSent']
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            if os.stat("messages.csv").st_size == 0:
+                writer.writeheader()
+            writer.writerow({
+                            'chatID': new_message.chatID,
+                            'messageID': new_message.messageID,
+                            'messageContents': new_message.messageContents,
+                            'sender': new_message.sender,
+                            'receiver': new_message.receiver,  # Fix typo if necessary
+                            'timeSent': new_message.timeSent.strftime('%Y-%m-%d %H:%M:%S')  # Format datetime
+                        })
+
+
+        emit('receive_message', {
+        "chatID": chatID,
+        "sender": sender,
+        "messageContents": messageContents
+        }, room=chatID)      
+
 
 @app.route('/profile_page')
 def profile_page():
@@ -227,5 +327,5 @@ def reset_password():
     return render_template('reset_password.html', form=form, email=email)
 
 if __name__ == "__main__":
-    app.run()
+    socketio.run(app)
 

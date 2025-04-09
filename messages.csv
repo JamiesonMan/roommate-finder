@@ -1,0 +1,24 @@
+chatID,messageID,messageContents,sender,receiver,timeSent
+1,1,Hello,integration_test,chatTester,2025-04-03 05:36:22
+1,2,Hello,chatTester,integration_test,2025-04-03 05:36:41
+1,3,Hello,integration_test,chatTester,2025-04-03 05:37:37
+1,4,Hello,chatTester,integration_test,2025-04-03 05:37:48
+1,5,Hello,integration_test,chatTester,2025-04-03 05:40:22
+1,6,Hello,integration_test,chatTester,2025-04-03 05:43:16
+1,7,Hello,integration_test,chatTester,2025-04-03 05:47:01
+1,8,Hello,integration_test,chatTester,2025-04-03 05:47:08
+1,9,Hello,chatTester,integration_test,2025-04-03 05:47:15
+1,10,Hello,integration_test,chatTester,2025-04-03 05:53:35
+1,11,Hello,integration_test,chatTester,2025-04-03 05:55:34
+1,12,Hello,integration_test,chatTester,2025-04-03 06:13:54
+1,13,Hello,chatTester,integration_test,2025-04-03 06:14:00
+1,14,Hello,chatTester,integration_test,2025-04-03 06:17:08
+1,15,Hello,integration_test,chatTester,2025-04-03 06:17:21
+1,16,Hello,integration_test,chatTester,2025-04-03 06:30:55
+1,17,Hello,chatTester,integration_test,2025-04-03 06:31:00
+1,18,Hello,integration_test,chatTester,2025-04-03 06:31:13
+1,19,Hello,integration_test,chatTester,2025-04-03 06:33:37
+1,20,Hello,integration_test,chatTester,2025-04-03 06:35:09
+1,21,Hello,chatTester,integration_test,2025-04-03 06:35:13
+1,22,Hello,integration_test,chatTester,2025-04-03 11:28:11
+1,23,Hello,chatTester,integration_test,2025-04-03 11:28:14
