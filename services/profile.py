@@ -6,6 +6,7 @@ class Profile:
     Includes profile details, preferences, and methods for managing profile updates.
     """
 
+    # Constructor
     def __init__(self, name, profile_picture, preferences, dealbreakers, bio, looking_status):
         self.name = name
         self.profile_picture = profile_picture
@@ -14,6 +15,7 @@ class Profile:
         self.bio = bio
         self.looking_status = looking_status
 
+    # Setters
     def update_profile(self, name=None, profile_picture=None, bio=None):
         if name:
             self.name = name
@@ -23,12 +25,14 @@ class Profile:
             self.bio = bio
         print("Profile updated successfully.")
 
+    # Setters for the preferences and dealbreakers
     def update_preferences(self, new_preferences, new_dealbreakers=None):
         self.preferences.update(new_preferences)
         if new_dealbreakers:
             self.dealbreakers.update(new_dealbreakers)
         print("Preferences updated successfully.")
 
+    # Make a
     def view_profile(self):
         profile_info = {
             "Name": self.name,

@@ -7,13 +7,29 @@
 </head>
 <body>
     <h1>Create a New Chat</h1>
-    
+    <h2>Signed in as {{ username }}</h2>
+
     <form action="/new_chat" method="POST">
         <label for="recipient">Enter recipient's username:</label>
         <input type="text" id="recipient" name="recipient" required>
         <button type="submit">Create Chat</button>
-
         <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />  
+    </form>
+
+    <form action="/new_agreement" method="POST">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <h4>
+                        {{ message }}
+                    </h4>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <label for="recipient-RMA">Enter recipient's username:</label>
+        <input type="text" id="recipient-RMA" name="recipient-RMA" required>
+        <button type="submit">Send Agreement Invite</button>
+        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
     </form>
 
     <a href="/inbox">Back to Inbox</a>

@@ -22,3 +22,5 @@ chatID,messageID,messageContents,sender,receiver,timeSent
 1,21,Hello,chatTester,integration_test,2025-04-03 06:35:13
 1,22,Hello,integration_test,chatTester,2025-04-03 11:28:11
 1,23,Hello,chatTester,integration_test,2025-04-03 11:28:14
+2,1,hi john,peter,john,2025-04-08 18:33:56
+2,2,hi peter,john,peter,2025-04-08 18:41:06
