@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Chat</title>
+</head>
+<body>
+    <h1>Create a New Chat</h1>
+    
+    <form action="/new_chat" method="POST">
+        <label for="recipient">Enter recipient's username:</label>
+        <input type="text" id="recipient" name="recipient" required>
+        <button type="submit">Create Chat</button>
+
+        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />  
+    </form>
+
+    <a href="/inbox">Back to Inbox</a>
+</body>
+</html>
