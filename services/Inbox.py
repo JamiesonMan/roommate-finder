@@ -30,7 +30,7 @@ class Message:
             data['receiver'],
             datetime.strptime(data['timeSent'], '%Y-%m-%d %H:%M:%S')
         )
-
+      
 class RoommateAgreement:
     def __init__(self, rmaID, user1, user2, user1Signature, user2Signature):
         self.rmaID = rmaID
@@ -78,6 +78,7 @@ def checkForExists(agreements, username, recipient):
             else:
                 return {"val": False, "code": 0, "rmaID" : rmaID} # There exist agreements, however this particular one doesn't exist yet.
         
+
 
 class Chat:
     def __init__(self, chatID, user1, user2, messages):

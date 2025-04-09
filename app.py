@@ -1,3 +1,5 @@
+
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_wtf import FlaskForm
@@ -7,12 +9,14 @@ from wtforms.validators import DataRequired, Length, Optional
 from werkzeug.security import generate_password_hash, check_password_hash #for hashing the password for database storage
 import csv
 import os
-from services.account_creation import AccountCreationForm, username_or_email_exists, get_next_user_id, enter_user_to_database
+from services.account_creation import AccountCreationForm, username_or_email_exists, get_next_user_id, enter_user_to_database, get_existing_users, update_user_password, PasswordResetForm, get_username_by_email
 from services.login import username_exists, get_userID, checkPassword
 from services.roommatePreferences import roommatePreferences, preferenceForm
+from services.account_recovery import send_reset_email
 import pickle #using to keep objects across different Pages
 from services.Inbox import Message, Chat, load_messages_from_csv, RoommateAgreement, load_agreements_from_csv, checkForExists, save_agreements_to_csv
 from services.profile import Profile
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
@@ -224,6 +228,7 @@ def handle_message(data):
     }, room=chatID)
 
 
+
 # Ensure static directory exists for profile pictures
     # Eventually should be localized data or stored in db
 os.makedirs("static/profile_pictures", exist_ok=True)
@@ -357,6 +362,7 @@ def prefPage():
         else:
             return render_template('login.html')
 
+
 @app.route('/profile_page')
 def profile_page():
     return render_template('profile-page.html')
@@ -390,5 +396,43 @@ def view_profile():
     profile_data = profile.view_profile()  # Uses the view_profile() method in Profile class
     return jsonify(profile_data) # Turns the profile_data into JSON format.
 
+@app.route('/account_recovery', methods=['GET', 'POST'])
+def recover_account():
+    if request.method == 'POST':
+        email = request.form['email'].strip().lower()
+
+        if username_or_email_exists("", email): 
+            username = get_username_by_email(email)
+            reset_link = url_for('reset_password', email=email, _external=True) #creates the reset link that sends user to reset page
+            send_reset_email(email, reset_link, username)
+
+            flash("A reset link has been sent to your email.", "info")
+        else:
+            flash("Email does not exist in our system. Try again or create a new account.", "info")
+
+        return redirect(url_for('recover_account'))
+
+    return render_template('email_recovery.html')
+
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    email = request.args.get('email', '').strip().lower()
+    form = PasswordResetForm()
+
+    if form.validate_on_submit():
+        new_password = form.password.data
+        new_hashed_password = generate_password_hash(new_password)
+
+        updated = update_user_password(email, new_hashed_password)
+
+        if updated:
+            flash("Password reset successful!", "success")
+            return redirect(url_for('login')) 
+        else:
+            flash("Error: email not found in system, try again or create a new account.", "error")
+
+    return render_template('reset_password.html', form=form, email=email)
+
 if __name__ == "__main__":
-    app.run()
+    socketio.run(app)
