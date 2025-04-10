@@ -11,7 +11,7 @@ import csv
 import os
 from services.account_creation import AccountCreationForm, username_or_email_exists, get_next_user_id, enter_user_to_database, get_existing_users, update_user_password, PasswordResetForm, get_username_by_email
 from services.login import username_exists, get_userID, checkPassword
-from services.roommatePreferences import roommatePreferences, preferenceForm
+from services.roommatePreferences import roommatePreferences, preferenceForm, load_preferences
 from services.account_recovery import send_reset_email
 import pickle #using to keep objects across different Pages
 from services.Inbox import Message, Chat, load_messages_from_csv, RoommateAgreement, load_agreements_from_csv, checkForExists, save_agreements_to_csv
@@ -435,10 +435,6 @@ def reset_password():
 
     return render_template('reset_password.html', form=form, email=email)
 
-if __name__ == "__main__":
-    socketio.run(app)
-
-    
 @app.route('/profile_feed')
 def view_feed():
     user = pickle.loads(session["user"])
@@ -477,3 +473,9 @@ def view_feed():
     current_profile = feed[index]
 
     return render_template("profile_feed.html", user=current_profile, index=index, total=len(feed)) #jinja    
+
+
+if __name__ == "__main__":
+    socketio.run(app)
+
+
