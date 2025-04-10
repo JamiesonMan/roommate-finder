@@ -16,7 +16,7 @@ from services.account_recovery import send_reset_email
 import pickle #using to keep objects across different Pages
 from services.Inbox import Message, Chat, load_messages_from_csv, RoommateAgreement, load_agreements_from_csv, checkForExists, save_agreements_to_csv
 from services.profile import Profile
-
+import random
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
@@ -258,9 +258,8 @@ def login():
 
             if username_exists(username):
                 if checkPassword(get_userID(username), password):
-                    session["user"] = username
                     userID = get_userID(username)
-                    userPref = roommatePreferences(userID)
+                    userPref = roommatePreferences(userID=userID, username=username)
                     session["user"] = pickle.dumps({
                     "userPref": userPref,
                     "userName": username
@@ -332,6 +331,8 @@ def prefPage():
             userPref = user["userPref"]
 
             if form.validate_on_submit():
+                print("Allergy score:", form.allergy_score.data)
+                print("Allergy status:", form.allergy_status.data)
                 bed_time = form.bed_time.data
                 visitor_status = form.visitor_status.data
                 drinking_status = form.drinking_status.data
@@ -436,3 +437,43 @@ def reset_password():
 
 if __name__ == "__main__":
     socketio.run(app)
+
+    
+@app.route('/profile_feed')
+def view_feed():
+    user = pickle.loads(session["user"])
+    current_user_pref = user["userPref"]
+    dict_all_users_prefs = load_preferences("userPreferences.csv") #a list of dictionaries
+    profile_feed = [] #list that will act as feed list of profiles
+
+    for person in dict_all_users_prefs:
+        if person["userID"] != str(current_user_pref.userID):
+            other_user = roommatePreferences(userID=person["userID"])
+            compatability_score = current_user_pref.compute_compatability(other_user)
+            profile_feed.append({
+                "userID": person["userID"],
+                "score": compatability_score,
+                "username": person["username"],
+                "preferences": other_user,
+                #stopping here for now, will add profile pics/user bios next sprint
+            })
+
+    sort_by = request.args.get("sort", "score")  #grabs sort type from URL, score is default if user doesnt specify
+
+    if sort_by == "score":
+        feed = sorted(profile_feed, key=lambda x: x["score"], reverse=True) #sorts pref dict by compute compatability descending
+    elif sort_by == "newest":
+        feed = sorted(profile_feed, key=lambda x: int(x["userID"]), reverse=True) #sorts dict by ID descending, IDs are given incrementally so it = newest profiles 1st
+    elif sort_by == "random":
+        feed = profile_feed.copy()
+        random.shuffle(feed)
+
+    index = int(request.args.get("index", 0)) #for URL indexing for arrow key buttons to go next/prev profile
+    num_profiles = len(feed)
+
+    #limiting URL index between 0 and total profiles minus self
+    index = max(0, min(index, num_profiles - 1))
+
+    current_profile = feed[index]
+
+    return render_template("profile_feed.html", user=current_profile, index=index, total=len(feed)) #jinja    
