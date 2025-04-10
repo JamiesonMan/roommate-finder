@@ -36,7 +36,7 @@ def inbox():
         user = pickle.loads(session["user"])
         username = user["userName"]
 
-        load_messages_from_csv("messages.csv", chats)
+        load_messages_from_csv("messages.csv", chats, username)
         load_agreements_from_csv("agreements.csv", agreements)
 
         returnCodeRMA = request.args.get('code', type=int)

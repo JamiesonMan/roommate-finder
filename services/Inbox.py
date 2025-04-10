@@ -129,7 +129,7 @@ def save_agreements_to_csv(filename='agreements.csv', agreements={}):
             })
 
 
-def load_messages_from_csv(filename='messages.csv', chats=[]):
+def load_messages_from_csv(filename='messages.csv', chats=[], username="\n"):
     chats.clear()
     with open(filename, mode='r', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file)
@@ -137,6 +137,8 @@ def load_messages_from_csv(filename='messages.csv', chats=[]):
                 if row['messageID'].lower() == 'messageid':  
                     continue 
                 msg = Message.from_dict(row)
-                if msg.chatID not in chats:
-                    chats[msg.chatID] = Chat(msg.chatID, msg.sender, msg.receiver, messages=[])
-                chats[msg.chatID].messages.append(msg)
+
+                if(str(username) == str(msg.sender) or str(username) == str(msg.receiver)):
+                    if msg.chatID not in chats:
+                        chats[msg.chatID] = Chat(msg.chatID, msg.sender, msg.receiver, messages=[])
+                    chats[msg.chatID].messages.append(msg)
