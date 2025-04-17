@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 from flask_wtf import FlaskForm
-from wtforms import TimeField, SelectField, IntegerField, SubmitField
+from wtforms import TimeField, SelectField, IntegerField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, NumberRange
 import csv
 
 #class to hold user preference information while logged in for easy acess and calculations
 class roommatePreferences:
-    #iconstructor for the Preferences Class.
+    #constructor for the Preferences Class.
     def __init__(self, userID=0, username=None, quiet_score=0, location_status="empty", location_score=0, 
              dorm_status="empty", dorm_score=0, animal_status="empty", animal_score=0, 
              visitor_status="empty", cleanliness_score="empty", bed_time="0:00", 
@@ -264,7 +264,6 @@ class roommatePreferences:
             compatability_score += 5
         return compatability_score 
 
-
     def allergy_comparison(self, user2):
     #If allergy info doesnt match/wont accommodate return 0, else return 5
         if (self.allergy_status == "yes" and user2.allergy_score == "no") or (user2.allergy_status == "yes" and self.allergy_score == "no"):
@@ -461,7 +460,7 @@ class preferenceForm(FlaskForm):
                                    ('stimson', 'Stimson'),
                                    ('streit' , 'Streit Perham')],
                                    validators=[DataRequired()])
-        location_status = SelectField('Which location do you prefer to live in?', choices=[("", "Select an option"), ('northside', 'Northside'), ('southside', 'Southside')], validators=[DataRequired()])
+        location_status = SelectField('Which location do you prefer to live in?', choices=[("", "Select an option"), ('northside', 'Northside'), ('southside', 'Southside'), ('hillside', 'Hillside')], validators=[DataRequired()])
         cleanliness_score = IntegerField('How much do you care about cleanliness?', validators=[NumberRange(min= 0, max= 5)])
         bedtime_score = IntegerField('How much do you care about your rommate going to bed around the same time?', validators=[NumberRange(min= 0, max= 5)])
         visitor_score = IntegerField('Do you care if your roommate has visitors?', validators=[NumberRange(min= 0, max= 5)])
@@ -474,3 +473,14 @@ class preferenceForm(FlaskForm):
         allergy_status = SelectField('Do you have any allergies?', choices=[("", "Select an option"), ('yes', 'Yes'), ('no', 'No')], validators=[DataRequired()])
         allergy_score = SelectField('Are you ok changing eating or lifestyle habits to accomadate rommates with allergies? e.g. Not eating peanuts for students with peanut allergy.', choices=[("", "Select an option"), ('yes', 'Yes'), ('no', 'No')], validators=[DataRequired()])
         submit = SubmitField('Submit')
+
+class dealBreakers(FlaskForm):
+    bedDealbreaker = BooleanField('Bed Time')
+    visDealbreaker = BooleanField('Visitors')
+    drinkDealbreaker = BooleanField('Drinking')
+    smokeDealbreaker = BooleanField('Smoking')
+    aniDealbreaker = BooleanField('Animal')
+    dormDealbreaker = BooleanField('Dorm Choice')
+    locDealbreaker = BooleanField('Location Choice')
+    cleanDealbreaker = BooleanField('Cleanliness')
+    quietDealbreaker = BooleanField('Noise')

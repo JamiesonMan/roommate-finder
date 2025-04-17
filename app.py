@@ -356,7 +356,7 @@ def prefPage():
                                         animal_status, animal_score, visitor_status, 
                                         cleanliness_score, bed_time, drinking_status, smoking_status, 
                                         smoking_score, drinking_score, visitor_score, bedtime_score, 
-                                        allergy_status, allergy_score)
+                                        allergy_status, allergy_score, user["userName"])
                 print(userPref.__dict__)
                 return redirect(url_for("dashboard"))
             return render_template('roommatePreferences.html', form=form)
@@ -446,13 +446,14 @@ def view_feed():
         if person["userID"] != str(current_user_pref.userID):
             other_user = roommatePreferences(userID=person["userID"])
             compatability_score = current_user_pref.compute_compatability(other_user)
-            profile_feed.append({
-                "userID": person["userID"],
-                "score": compatability_score,
-                "username": person["username"],
-                "preferences": other_user,
-                #stopping here for now, will add profile pics/user bios next sprint
-            })
+            if(compatability_score != 0): #added so people with zero compatability are not shown for deal breakers
+                profile_feed.append({
+                    "userID": person["userID"],
+                    "score": compatability_score,
+                    "username": person["username"],
+                    "preferences": other_user,
+                    #stopping here for now, will add profile pics/user bios next sprint
+                })
 
     sort_by = request.args.get("sort", "score")  #grabs sort type from URL, score is default if user doesnt specify
 

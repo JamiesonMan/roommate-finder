@@ -1,6 +1,7 @@
 userID,username,quiet_score,location_status,location_score,dorm_status,dorm_score,animal_status,animal_score,visitor_status,cleanliness_score,bed_time,drinking_status,smoking_status,smoking_score,drinking_score,visitor_score,bedtime_score,allergy_status,allergy_score
-9,David,1,northside,3,global,1,yes,1,yes,3,23:30:00,yes,no,5,3,3,3,no,yes
+9,chatTester,3,southside,2,gannon,1,no,3,no,2,22:00:00,yes,no,2,1,2,1,no,no
 10,Rob,4,southside,1,orton,2,no,2,yes,2,21:00:00,yes,no,5,2,1,4,no,yes
 11,Julia,2,southside,5,orton,3,no,1,yes,1,04:30:00,yes,no,5,1,2,5,no,yes
-12,Dracula,5,northside,4,global,4,no,4,no,4,21:00:00,no,yes,1,5,1,4,yes,no
+12,Dracula,5,northside,4,global,4,no,4,no,4,21:00:00,yes,yes,1,5,1,4,yes,yes
 7,,1,northside,2,orton,2,yes,2,yes,1,22:30:00,yes,yes,1,1,1,1,no,yes
+0,,4,near,2,yes,2,no,1,yes,3,23:00:00,yes,yes,5,0,3,3,no,no
