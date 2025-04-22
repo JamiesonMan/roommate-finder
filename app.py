@@ -17,6 +17,7 @@ import pickle #using to keep objects across different Pages
 from services.Inbox import Message, Chat, load_messages_from_csv, RoommateAgreement, load_agreements_from_csv, checkForExists, save_agreements_to_csv
 from services.profile import Profile
 import random
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
@@ -264,7 +265,6 @@ def login():
                     "userPref": userPref,
                     "userName": username
                     })
-                    print(userPref.__dict__)
                     return redirect(url_for("dashboard"))
                 else:
                     flash("Password incorrect", "error")
@@ -323,16 +323,37 @@ def create_account():
 
 @app.route('/preferences', methods = ['GET', 'POST'])
 def prefPage():
-        form = preferenceForm()
-
         if "user"in session: 
 
             user = pickle.loads(session["user"])
             userPref = user["userPref"]
 
+
+
+            if isinstance(userPref.bed_time, str):
+                try:
+                    userPref.bed_time = datetime.strptime(userPref.bed_time, "%H:%M").time()
+                except ValueError:
+                    userPref.bed_time = datetime.strptime("00:00", "%H:%M").time()
+
+            form = preferenceForm(obj=userPref)
+             
+        
+            if request.method == "GET":
+                 form.bedDealbreaker.data = "bedtime" in userPref.dealBreakerList
+                 form.visDealbreaker.data = "visitor" in userPref.dealBreakerList
+                 form.drinkDealbreaker.data = "drinking" in userPref.dealBreakerList
+                 form.smokeDealbreaker.data = "smoking" in userPref.dealBreakerList
+                 form.aniDealbreaker.data = "animal" in userPref.dealBreakerList
+                 form.dormDealbreaker.data = "dorm" in userPref.dealBreakerList
+                 form.locDealbreaker.data = "location" in userPref.dealBreakerList
+                 form.cleanDealbreaker.data = "cleanliness" in userPref.dealBreakerList
+                 form.quietDealbreaker.data = "quiet" in userPref.dealBreakerList
+             
+            
+
+
             if form.validate_on_submit():
-                print("Allergy score:", form.allergy_score.data)
-                print("Allergy status:", form.allergy_status.data)
                 bed_time = form.bed_time.data
                 visitor_status = form.visitor_status.data
                 drinking_status = form.drinking_status.data
@@ -351,13 +372,16 @@ def prefPage():
                 location_score = form.location_score.data
                 allergy_status = form.allergy_status.data
                 allergy_score = form.allergy_score.data
-                print(userPref.__dict__)
+                userPref.update_dealbreakers(form.bedDealbreaker.data, form.visDealbreaker.data, form.drinkDealbreaker.data, form.smokeDealbreaker.data, form.aniDealbreaker.data, form.dormDealbreaker.data, form.locDealbreaker.data, form.cleanDealbreaker.data, form.quietDealbreaker.data)
                 userPref.updatePreferences(quiet_score, location_status, location_score, dorm_status, dorm_score, 
                                         animal_status, animal_score, visitor_status, 
                                         cleanliness_score, bed_time, drinking_status, smoking_status, 
                                         smoking_score, drinking_score, visitor_score, bedtime_score, 
                                         allergy_status, allergy_score, user["userName"])
-                print(userPref.__dict__)
+                session["user"] = pickle.dumps({
+                    "userName": user["userName"],
+                    "userPref": userPref
+                })
                 return redirect(url_for("dashboard"))
             return render_template('roommatePreferences.html', form=form)
         else:
@@ -421,6 +445,7 @@ def reset_password():
     email = request.args.get('email', '').strip().lower()
     form = PasswordResetForm()
 
+
     if form.validate_on_submit():
         new_password = form.password.data
         new_hashed_password = generate_password_hash(new_password)
@@ -471,6 +496,7 @@ def view_feed():
     #limiting URL index between 0 and total profiles minus self
     index = max(0, min(index, num_profiles - 1))
 
+    
     current_profile = feed[index]
 
     return render_template("profile_feed.html", user=current_profile, index=index, total=len(feed)) #jinja    
