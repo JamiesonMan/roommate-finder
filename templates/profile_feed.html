@@ -8,15 +8,48 @@
 
     <h1>Profile Feed</h1>
 
-    <!-- Drop down box for user to select sort method -->
+    {% set current_sort = request.args.get('sort', 'score') %}
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul style="color: red;">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    <!-- user search function on feed page -->
+    <form method="GET" action="{{ url_for('view_feed') }}">
+        <input type="text" name="search" placeholder="Search by username">
+        <button type="submit">Search</button>
+    </form>
+
+
+    <!-- Drop down box for user to select sort method
+        If there's some weird error with equal signs its cause VS keeps changing '==' into '= =' annoyingly -->
+
     <form method="GET" action="{{ url_for('view_feed') }}">
         <label for="sort_by">Sort by:</label>
         <select name="sort" id="sort_by">
-            <option value="score" {% if request.args.get('sort')=='score' %}selected{% endif %}>Compatibility Score</option>
-            <option value="newest" {% if request.args.get('sort')=='newest' %}selected{% endif %}>Newest Profiles</option>
-            <option value="random" {% if request.args.get('sort')=='random' %}selected{% endif %}>Random</option>
+            <option value="score" {% if 'score' in sort_by %}selected{% endif %}>Compatibility Score</option>
+            <option value="newest" {% if 'newest' in sort_by %}selected{% endif %}>Newest Profiles</option>
+            <option value="random" {% if 'random' in sort_by %}selected{% endif %}>Random</option>
+            <option value="favorites" {% if 'favorites' in sort_by %}selected{% endif %}>Favorites List</option>
         </select>
+
         <button type="submit">Sort</button>
+    </form>
+
+    <!-- HTML for favorite/unfavoriting -->
+    <form action="{{ url_for('favorite_user', user_id=user['userID']) }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% if user['userID'] in current_user_pref.favorites %}
+        <button type="submit">⭐ Unfavorite</button>
+        {% else %}
+        <button type="submit">☆ Favorite</button>
+        {% endif %}
     </form>
 
     <hr>
@@ -29,7 +62,7 @@
         <h4>Preferences:</h4>
         <ul>
             {% for key, value in user.preferences.__dict__.items() %}
-            {% if key != "userID" %}
+            {% if key != "userID" and key != "favorites" %}
             <li><strong>{{ key.replace('_', ' ').title() }}:</strong> {{ value }}</li>
             {% endif %}
             {% endfor %}
@@ -43,8 +76,19 @@
         {% endif %}-->
     </div>
 
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('dashboard') }}">
+            <button type="button">Return to Dashboard</button>
+        </a>
+    </div>
+
     <!-- Going to next or previous profile including bounds checking -->
     <div style="display: flex; justify-content: space-between;">
+
+        {% if user_search %}
+        <!-- search will yield 0 or 1 result, so no frw/bck arrows needed -->
+        <span>Search Result</span>
+        {% else %}
         {% if index > 0 %}
         <a href="{{ url_for('view_feed', index=index-1, sort=request.args.get('sort', 'score')) }}">Previous</a>
         {% else %}
@@ -54,7 +98,11 @@
         {% if index < total - 1 %}
         <a href="{{ url_for('view_feed', index=index+1, sort=request.args.get('sort', 'score')) }}">Next</a>
         {% endif %}
+        {% endif %}
+
     </div>
+
+
 
 </body>
 </html>

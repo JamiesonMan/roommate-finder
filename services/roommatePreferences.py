@@ -6,98 +6,16 @@ import csv
 
 #class to hold user preference information while logged in for easy acess and calculations
 class roommatePreferences:
-    #iconstructor for the Preferences Class.
-    def __init__(self, userID=0, username=None, quiet_score=0, location_status="empty", location_score=0, 
-             dorm_status="empty", dorm_score=0, animal_status="empty", animal_score=0, 
-             visitor_status="empty", cleanliness_score="empty", bed_time="0:00", 
-             drinking_status="no", smoking_status="no", smoking_score=0, 
-             drinking_score=0, visitor_score=0, bedtime_score=0, 
-             allergy_status="no", allergy_score="no"):
-
+    def __init__(self, userID=0):
         self.userID = userID
-        self.username = username
-        userPref = load_preferences("userPreferences.csv")
+        self.set_defaults()
 
+        userPref = load_preferences("userPreferences.csv")
         found = self.find_user(userPref)
         if found:
-            self.updatePreferences(
-                int(found["quiet_score"]),
-                found["location_status"],
-                int(found["location_score"]),
-                found["dorm_status"],
-                int(found["dorm_score"]),
-                found["animal_status"],
-                int(found["animal_score"]),
-                found["visitor_status"],
-                int(found["cleanliness_score"]),
-                datetime.strptime(found["bed_time"], "%H:%M:%S").time(),
-                found["drinking_status"],
-                found["smoking_status"],
-                int(found["smoking_score"]),
-                int(found["drinking_score"]),
-                int(found["visitor_score"]),
-                int(found["bedtime_score"]),
-                found["allergy_status"],
-                found["allergy_score"],
-                found["username"] )
-        
-        elif cleanliness_score != "empty":
-            self.updatePreferences(int(quiet_score), location_status, int(location_score),
-                dorm_status, int(dorm_score), animal_status, int(animal_score),
-                visitor_status, int(cleanliness_score), bed_time,
-                drinking_status, smoking_status, int(smoking_score),
-                int(drinking_score), int(visitor_score), int(bedtime_score),
-                allergy_status, allergy_score, username)
-        else:
-            #default values to prevent crashing
-            self.quiet_score = 0
-            self.location_status = location_status
-            self.location_score = 0
-            self.dorm_status = dorm_status
-            self.dorm_score = 0
-            self.animal_status = animal_status
-            self.animal_score = 0
-            self.visitor_status = visitor_status
-            self.visitor_score = 0
-            self.cleanliness_score = 0
-            self.bed_time = bed_time
-            self.drinking_status = drinking_status
-            self.drinking_score = 0
-            self.smoking_status = smoking_status
-            self.smoking_score = 0
-            self.bedtime_score = 0
-            self.allergy_status = allergy_status
-            self.allergy_score = allergy_score
+            self.load_from_dict(found)
 
-
-
-
-    #The old constructor was messing stuff up with func/database integration and was writting even when reading from db was desired
-    def load_pref_data(self):
-        userPref = load_preferences("userPreferences.csv")
-        for pref in userPref:
-            if str(pref.get("userID")) == str(self.userID):
-                self.quiet_score = int(pref["quiet_score"])
-                self.location_status = pref["location_status"]
-                self.location_score = int(pref["location_score"])
-                self.dorm_status = pref["dorm_status"]
-                self.dorm_score = int(pref["dorm_score"])
-                self.animal_status = pref["animal_status"]
-                self.animal_score = int(pref["animal_score"])
-                self.visitor_status = pref["visitor_status"]
-                self.cleanliness_score = int(pref["cleanliness_score"])
-                self.bed_time = datetime.strptime(pref["bed_time"], "%H:%M:%S").time()
-                self.drinking_status = pref["drinking_status"]
-                self.smoking_status = pref["smoking_status"]
-                self.smoking_score = int(pref["smoking_score"])
-                self.drinking_score = int(pref["drinking_score"])
-                self.visitor_score = int(pref["visitor_score"])
-                self.bedtime_score = int(pref["bedtime_score"])
-                self.allergy_status = pref["allergy_status"]
-                self.allergy_score = pref["allergy_score"]
-                return
-
-        #No user found, use default values
+    def set_defaults(self):
         self.quiet_score = 0
         self.location_status = "empty"
         self.location_score = 0
@@ -106,21 +24,45 @@ class roommatePreferences:
         self.animal_status = "empty"
         self.animal_score = 0
         self.visitor_status = "empty"
+        self.visitor_score = 0
         self.cleanliness_score = 0
         self.bed_time = datetime.strptime("00:00:00", "%H:%M:%S").time()
         self.drinking_status = "no"
+        self.drinking_score = 0
         self.smoking_status = "no"
         self.smoking_score = 0
-        self.drinking_score = 0
-        self.visitor_score = 0
         self.bedtime_score = 0
         self.allergy_status = "no"
         self.allergy_score = "no"
+        self.favorites = []
+
+    def load_from_dict(self, pref):
+        self.username = pref.get("username")
+        self.quiet_score = int(pref["quiet_score"])
+        self.location_status = pref["location_status"]
+        self.location_score = int(pref["location_score"])
+        self.dorm_status = pref["dorm_status"]
+        self.dorm_score = int(pref["dorm_score"])
+        self.animal_status = pref["animal_status"]
+        self.animal_score = int(pref["animal_score"])
+        self.visitor_status = pref["visitor_status"]
+        self.cleanliness_score = int(pref["cleanliness_score"])
+        self.bed_time = datetime.strptime(pref["bed_time"], "%H:%M:%S").time()
+        self.drinking_status = pref["drinking_status"]
+        self.smoking_status = pref["smoking_status"]
+        self.smoking_score = int(pref["smoking_score"])
+        self.drinking_score = int(pref["drinking_score"])
+        self.visitor_score = int(pref["visitor_score"])
+        self.bedtime_score = int(pref["bedtime_score"])
+        self.allergy_status = pref["allergy_status"]
+        self.allergy_score = pref["allergy_score"]
+        self.favorites = pref.get("favorites", [])
+
 
         
 
 
-    def updatePreferences(self, quiet_score, location_status, location_score, dorm_status, dorm_score, animal_status, animal_score, visitor_status, cleanliness_score, bed_time, drinking_status, smoking_status, smoking_score, drinking_score, visitor_score, bedtime_score, allergy_status, allergy_score, username=None):
+    def updatePreferences(self, quiet_score, location_status, location_score, dorm_status, dorm_score, animal_status, animal_score, visitor_status, cleanliness_score, bed_time, drinking_status, smoking_status, smoking_score, drinking_score, visitor_score, bedtime_score, allergy_status, allergy_score, favorites=None, username=None):
             userPref = load_preferences("userPreferences.csv")
             self.cleanliness_score = int(cleanliness_score)
             self.bed_time = bed_time
@@ -140,7 +82,9 @@ class roommatePreferences:
             self.location_status = location_status
             self.location_score = int(location_score)
             self.quiet_score = int(quiet_score)
-            self.username = username
+            self.favorites = favorites
+            if username is not None:
+                self.username = username
             self.update_user(userPref)
 
     #computes two users compatability
@@ -372,6 +316,7 @@ class roommatePreferences:
                 pref["bedtime_score"] = int(self.bedtime_score)
                 pref["allergy_status"] = self.allergy_status
                 pref["allergy_score"] = self.allergy_score
+                pref["favorites"] = self.favorites
                 break
 
         if not user_found:
@@ -395,24 +340,43 @@ class roommatePreferences:
                 "visitor_score": int(self.visitor_score),
                 "bedtime_score": int(self.bedtime_score),
                 "allergy_status": self.allergy_status,
-                "allergy_score": self.allergy_score
+                "allergy_score": self.allergy_score,
+                "favorites" : self.favorites
             })
 
         self.save_preferences(userPreferences, "userPreferences.csv")
 
-
+    #adding favorites was overwritting something in database, adding this as fix
+    def update_favorites(self):
+        prefs = load_preferences("userPreferences.csv") #prefs is list of dicts
+        for pref in prefs:
+            if str(pref.get("userID")) == str(self.userID):
+                pref["favorites"] = self.favorites
+                break
+        self.save_preferences(prefs, "userPreferences.csv")
 
     def save_preferences(self, userPreferences, file):
+        #doesnt modify original list in case needs to save multiple times
+        prefs_to_save = []
+        for pref in userPreferences:
+            pref_copy = pref.copy()
+            #favorites is str in csv, changed into list for dict
+            if isinstance(pref_copy.get("favorites"), list):
+                pref_copy["favorites"] = ",".join(pref_copy["favorites"])
+            prefs_to_save.append(pref_copy)
+
         with open(file, mode='w', newline='') as csvfile:
             fieldnames = [
-            "userID", "username", "quiet_score", "location_status", "location_score",
-            "dorm_status", "dorm_score", "animal_status", "animal_score", "visitor_status",
-            "cleanliness_score", "bed_time", "drinking_status", "smoking_status",
-            "smoking_score", "drinking_score", "visitor_score", "bedtime_score",
-            "allergy_status", "allergy_score" ]
-            writer= csv.DictWriter(csvfile, fieldnames=fieldnames)
+                "userID", "username", "quiet_score", "location_status", "location_score",
+                "dorm_status", "dorm_score", "animal_status", "animal_score", "visitor_status",
+                "cleanliness_score", "bed_time", "drinking_status", "smoking_status",
+                "smoking_score", "drinking_score", "visitor_score", "bedtime_score",
+                "allergy_status", "allergy_score", "favorites"
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(userPreferences)
+            writer.writerows(prefs_to_save)
+
 
     
 def load_preferences(filename):
@@ -433,6 +397,11 @@ def load_preferences(filename):
                             row[field] = int(row[field])
                         else:
                             row[field] = 0  #If a field with a score is blank, default to 0 (dont care)
+                    #converts csv string to list of ID numbers for favoriting in feed
+                    if "favorites" in row:
+                        row["favorites"] = row["favorites"].split(",") if row["favorites"].strip() else []
+                    else:
+                        row["favorites"] = []
 
                     userPreferences.append(row)
         return userPreferences
