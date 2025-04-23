@@ -1,18 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard</title>
+
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 25px;
+      justify-items: center;
+      margin-top: 40px;
+    }
+
+    .dashboard-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background-color: #821919d4;
+      color: white;
+      text-decoration: none;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease;
+      width: 220px;
+      height: 180px;
+    }
+
+    .dashboard-card:hover {
+      background-color: #5b5b5b;
+    }
+
+    .card-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: #f0f0f0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 40px;
+    }
+
+    h1 {
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin-bottom: 2rem;
+    }
+  </style>
 </head>
 <body>
-    <h1>Welcome, {{ username }}!</h1>
-    <p>You have successfully logged in.</p>
-    <a href="{{ url_for('prefPage')}}">Preferences</a>
-    <a href="{{ url_for('logout') }}">Log Out</a>
-    <a href="/profile_info">View Profile Information</a>
-    <a href="/profile_page">Change Profile</a>
-    <a href="{{ url_for('inbox') }}">Inbox</a>
-    <a href="{{ url_for('view_feed') }}">View Profile Feed</a>
+
+  <h1>Welcome to your dashboard, {{ username }}!</h1>
+  <p>You have successfully logged in. What would you like to do?</p>
+
+  <div class="dashboard-grid">
+    <a href="{{ url_for('prefPage') }}" class="dashboard-card">
+      <div class="card-icon">🛠️</div>
+      <div class="card-title">Preferences</div>
+      <div class="card-subtitle">Set your roommate fit</div>
+    </a>
+
+    <a href="/profile_info" class="dashboard-card">
+      <div class="card-icon">👤</div>
+      <div class="card-title">View Profile Info</div>
+      <div class="card-subtitle">See your current info</div>
+    </a>
+
+    <a href="/profile_page" class="dashboard-card">
+      <div class="card-icon">✏️</div>
+      <div class="card-title">Change Profile</div>
+      <div class="card-subtitle">Change your user profile information</div>
+    </a>
+
+    <a href="{{ url_for('inbox') }}" class="dashboard-card">
+      <div class="card-icon">💬</div>
+      <div class="card-title">Inbox</div>
+      <div class="card-subtitle">Read messages</div>
+    </a>
+
+    <a href="{{ url_for('view_feed') }}" class="dashboard-card">
+      <div class="card-icon">📄</div>
+      <div class="card-title">Profile Feed</div>
+      <div class="card-subtitle">Match with roommates</div>
+    </a>
+
+    <a href="{{ url_for('logout') }}" class="dashboard-card">
+      <div class="card-icon">🚪</div>
+      <div class="card-title">Log Out</div>
+      <div class="card-subtitle">Bye!</div>
+    </a>
+  </div>
+
 </body>
 </html>
+

@@ -3,12 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <title>Roommate Feed</title>
+
+    <!-- 🆕 Added styles to make the page look like the dashboard -->
+    <style>
+        body {
+            background-color: #f9f9f9;
+            margin: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        /* 🆕 Styled the sort dropdown form */
+        form {
+            margin-bottom: 20px;
+        }
+
+        select, button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        /* 🆕 Styled the profile card */
+        .profile-card {
+            background-color: #821919d4;
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 500px;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-card h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .profile-card p {
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        /* 🆕 Styled the preferences list */
+        .profile-card ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        .profile-card li {
+            margin: 6px 0;
+        }
+
+        /* 🆕 Styled nav links and footer */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            max-width: 500px;
+            margin: 30px auto;
+        }
+
+        .nav-buttons a {
+            background-color: #821919d4;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-buttons a:hover {
+            background-color: #5b5b5b;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 40px;
+            color: #333;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
     <h1>Profile Feed</h1>
 
-    <!-- Drop down box for user to select sort method -->
     <form method="GET" action="{{ url_for('view_feed') }}">
         <label for="sort_by">Sort by:</label>
         <select name="sort" id="sort_by">
@@ -19,42 +106,35 @@
         <button type="submit">Sort</button>
     </form>
 
-    <hr>
-
-    <!-- Display profile's preferences, making a little more readable too -->
-    <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 10px;">
+    <div class="profile-card">
         <h3>Username: {{ user.username }}</h3>
         <p>Compatibility Score: {{ user.score }}%</p>
 
         <h4>Preferences:</h4>
         <ul>
             {% for key, value in user.preferences.__dict__.items() %}
-            {% if key != "userID" %}
-            <li><strong>{{ key.replace('_', ' ').title() }}:</strong> {{ value }}</li>
-            {% endif %}
+                {% if key != "userID" %}
+                    <li><strong>{{ key.replace('_', ' ').title() }}:</strong> {{ value }}</li>
+                {% endif %}
             {% endfor %}
         </ul>
-
-        <!--  TODO implement profile pics -->
-        <!--{% if user.profile_picture %}
-        <img src="{ *add one more curly brace to left when uncommenting* url_for('static', filename='profile_pictures/' ~ user.profile_picture) }}" alt="Profile Picture" width="100">
-        {% else %}
-        <p>No profile picture uploaded.</p>
-        {% endif %}-->
     </div>
 
-    <!-- Going to next or previous profile including bounds checking -->
-    <div style="display: flex; justify-content: space-between;">
+    <!-- 🆕 Styled nav buttons into nice green arrows -->
+    <div class="nav-buttons">
         {% if index > 0 %}
-        <a href="{{ url_for('view_feed', index=index-1, sort=request.args.get('sort', 'score')) }}">Previous</a>
+            <a href="{{ url_for('view_feed', index=index-1, sort=request.args.get('sort', 'score')) }}">← Previous</a>
         {% else %}
-        <span></span>
+            <span></span>
         {% endif %}
 
         {% if index < total - 1 %}
-        <a href="{{ url_for('view_feed', index=index+1, sort=request.args.get('sort', 'score')) }}">Next</a>
+            <a href="{{ url_for('view_feed', index=index+1, sort=request.args.get('sort', 'score')) }}">Next →</a>
         {% endif %}
     </div>
+
+    <!-- 🆕 Styled return link -->
+    <a class="back-link" href="{{ url_for('dashboard') }}">Return to Dashboard</a>
 
 </body>
 </html>

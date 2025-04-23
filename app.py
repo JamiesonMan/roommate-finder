@@ -197,9 +197,7 @@ def on_join(data):
 
 @socketio.on('message')
 def handle_message(data):
-    chatID = int(data['chatID'])
-    sender = data['sender']
-    receiver = data['receiver']
+
     messageContents = data['message']
 
     if chatID not in chats:
@@ -477,5 +475,3 @@ def view_feed():
 
 if __name__ == "__main__":
     socketio.run(app)
-
-
