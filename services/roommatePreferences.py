@@ -1,25 +1,27 @@
 from datetime import datetime, timedelta
 from flask_wtf import FlaskForm
-from wtforms import TimeField, SelectField, IntegerField, SubmitField
+from wtforms import TimeField, SelectField, IntegerField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, NumberRange
 import csv
 
 #class to hold user preference information while logged in for easy acess and calculations
 class roommatePreferences:
-    #iconstructor for the Preferences Class.
+    #constructor for the Preferences Class.
     def __init__(self, userID=0, username=None, quiet_score=0, location_status="empty", location_score=0, 
              dorm_status="empty", dorm_score=0, animal_status="empty", animal_score=0, 
-             visitor_status="empty", cleanliness_score="empty", bed_time="0:00", 
+             visitor_status="empty", cleanliness_score="empty", bed_time="00:00:00", 
              drinking_status="no", smoking_status="no", smoking_score=0, 
              drinking_score=0, visitor_score=0, bedtime_score=0, 
              allergy_status="no", allergy_score="no"):
 
+        self.dealBreakerList = []
         self.userID = userID
         self.username = username
         userPref = load_preferences("userPreferences.csv")
 
         found = self.find_user(userPref)
         if found:
+            self.dealBreakerList = found["dealBreakers"]
             self.updatePreferences(
                 int(found["quiet_score"]),
                 found["location_status"],
@@ -44,7 +46,7 @@ class roommatePreferences:
         elif cleanliness_score != "empty":
             self.updatePreferences(int(quiet_score), location_status, int(location_score),
                 dorm_status, int(dorm_score), animal_status, int(animal_score),
-                visitor_status, int(cleanliness_score), bed_time,
+                visitor_status, int(cleanliness_score), datetime.strptime(bed_time, "%H:%M:%S").time(),
                 drinking_status, smoking_status, int(smoking_score),
                 int(drinking_score), int(visitor_score), int(bedtime_score),
                 allergy_status, allergy_score, username)
@@ -60,7 +62,7 @@ class roommatePreferences:
             self.visitor_status = visitor_status
             self.visitor_score = 0
             self.cleanliness_score = 0
-            self.bed_time = bed_time
+            self.bed_time = datetime.strptime(bed_time, "%H:%M:%S").time()
             self.drinking_status = drinking_status
             self.drinking_score = 0
             self.smoking_status = smoking_status
@@ -68,10 +70,8 @@ class roommatePreferences:
             self.bedtime_score = 0
             self.allergy_status = allergy_status
             self.allergy_score = allergy_score
-
-
-
-
+            self.dealBreakerList = []
+            
     #The old constructor was messing stuff up with func/database integration and was writting even when reading from db was desired
     def load_pref_data(self):
         userPref = load_preferences("userPreferences.csv")
@@ -95,6 +95,7 @@ class roommatePreferences:
                 self.bedtime_score = int(pref["bedtime_score"])
                 self.allergy_status = pref["allergy_status"]
                 self.allergy_score = pref["allergy_score"]
+                self.dealBreakerList = pref["dealBreakers"]
                 return
 
         #No user found, use default values
@@ -116,9 +117,7 @@ class roommatePreferences:
         self.bedtime_score = 0
         self.allergy_status = "no"
         self.allergy_score = "no"
-
-        
-
+        self.dealBreakerList = []
 
     def updatePreferences(self, quiet_score, location_status, location_score, dorm_status, dorm_score, animal_status, animal_score, visitor_status, cleanliness_score, bed_time, drinking_status, smoking_status, smoking_score, drinking_score, visitor_score, bedtime_score, allergy_status, allergy_score, username=None):
             userPref = load_preferences("userPreferences.csv")
@@ -145,10 +144,29 @@ class roommatePreferences:
 
     #computes two users compatability
     def compute_compatability(self, user2):
+        if not hasattr(self, "dealBreakerList"):
+            self.dealBreakerList = []
         #dealbreaker if allergies dont match
         if self.allergy_comparison(user2) == 0:
             return 0  
-    
+        if self.quiet_comparison(user2) != 5 and ("quiet" in self.dealBreakerList or "quiet" in user2.dealBreakerList):
+            return 0
+        if self.location_comparison(user2) != 5 and ("location" in self.dealBreakerList or "location" in user2.dealBreakerList):
+            return 0
+        if self.dorm_comparison(user2) != 5 and ("dorm" in self.dealBreakerList or "dorm" in user2.dealBreakerList):
+            return 0
+        if self.animal_comparison(user2) != 5 and ("animal" in self.dealBreakerList or "animal" in user2.dealBreakerList):
+            return 0
+        if self.bedtime_comparison(user2) != 5 and ("bedtime" in self.dealBreakerList or "bedtime" in user2.dealBreakerList):
+            return 0
+        if self.visitor_comparison(user2) != 5 and ("visitor" in self.dealBreakerList or "visitor" in user2.dealBreakerList):
+            return 0
+        if self.smoking_comparison(user2) != 5 and ("smoking" in self.dealBreakerList or "smoking" in user2.dealBreakerList):
+            return 0
+        if self.drinking_comparison(user2) != 5 and ("drinking" in self.dealBreakerList or "drinking" in user2.dealBreakerList):
+            return 0
+        if self.cleanliness_comparison(user2) != 5 and ("cleanliness" in self.dealBreakerList or "cleanliness" in user2.dealBreakerList):
+            return 0
         compatability_score = 0
         compatability_score += self.quiet_comparison(user2)
         compatability_score += self.location_comparison(user2)
@@ -159,7 +177,6 @@ class roommatePreferences:
         compatability_score += self.smoking_comparison(user2)
         compatability_score += self.drinking_comparison(user2)
         compatability_score += self.cleanliness_comparison(user2)
-        compatability_score += 5  
 
         compatability_score = (compatability_score/50) * 100 
         return compatability_score
@@ -263,7 +280,6 @@ class roommatePreferences:
         elif((abs(self_bed_time - user2_bed_time)  >= timedelta(hours = 1))) and (self.bedtime_score == 0 or user2.bedtime_score == 0):
             compatability_score += 5
         return compatability_score 
-
 
     def allergy_comparison(self, user2):
     #If allergy info doesnt match/wont accommodate return 0, else return 5
@@ -372,6 +388,7 @@ class roommatePreferences:
                 pref["bedtime_score"] = int(self.bedtime_score)
                 pref["allergy_status"] = self.allergy_status
                 pref["allergy_score"] = self.allergy_score
+                pref["dealBreakers"] = self.dealBreakerList
                 break
 
         if not user_found:
@@ -395,12 +412,60 @@ class roommatePreferences:
                 "visitor_score": int(self.visitor_score),
                 "bedtime_score": int(self.bedtime_score),
                 "allergy_status": self.allergy_status,
-                "allergy_score": self.allergy_score
+                "allergy_score": self.allergy_score,
+                "dealBreakers": self.dealBreakerList
             })
 
         self.save_preferences(userPreferences, "userPreferences.csv")
 
+    #updating the list of dealbreakers  
+    def update_dealbreakers(self, bedtime, visitor, drinking, smoking, animal, dorm, location, clean, quiet):
+        userPref = load_preferences("userPreferences.csv")
+        if not hasattr(self, "dealBreakerList"):
+            self.dealBreakerList = []
+        if bedtime and "bedtime" not in self.dealBreakerList:
+            self.dealBreakerList.append("bedtime")
+        elif not bedtime and "bedtime" in self.dealBreakerList:
+            self.dealBreakerList.remove("bedtime")
+        if visitor and "visitor" not in self.dealBreakerList:
+            self.dealBreakerList.append("visitor")
+        elif not visitor and "visitor" in self.dealBreakerList:
+            self.dealBreakerList.remove("visitor")
+        if drinking and "drinking" not in self.dealBreakerList:
+            self.dealBreakerList.append("drinking")
+        elif not drinking and "drinking" in self.dealBreakerList:
+            self.dealBreakerList.remove("drinking")
+        if smoking and "smoking" not in self.dealBreakerList:
+            self.dealBreakerList.append("smoking")
+        elif not smoking and "smoking" in self.dealBreakerList:
+            self.dealBreakerList.remove("smoking")
+        if animal and "animal" not in self.dealBreakerList:
+            self.dealBreakerList.append("animal")
+        elif not animal and "animal" in self.dealBreakerList:
+            self.dealBreakerList.remove("animal")
+        if dorm and "dorm" not in self.dealBreakerList:
+            self.dealBreakerList.append("dorm")
+        elif not dorm and "dorm" in self.dealBreakerList:
+            self.dealBreakerList.remove("dorm")
+        if location and "location" not in self.dealBreakerList:
+            self.dealBreakerList.append("location")
+        elif not location and "location" in self.dealBreakerList:
+            self.dealBreakerList.remove("location")
+        if clean and "cleanliness" not in self.dealBreakerList:
+            self.dealBreakerList.append("cleanliness")
+        elif not clean and "cleanliness" in self.dealBreakerList:
+            self.dealBreakerList.remove("cleanliness")
+        if quiet and "quiet" not in self.dealBreakerList:
+            self.dealBreakerList.append("quiet")
+        elif not quiet and "quiet" in self.dealBreakerList:
+            self.dealBreakerList.remove("quiet")
 
+        for user in userPref:
+            if str(user["userID"]) == str(self.userID):
+                user["dealBreakers"] = self.dealBreakerList
+                break
+
+        self.save_preferences(userPref, "userPreferences.csv")
 
     def save_preferences(self, userPreferences, file):
         with open(file, mode='w', newline='') as csvfile:
@@ -409,10 +474,14 @@ class roommatePreferences:
             "dorm_status", "dorm_score", "animal_status", "animal_score", "visitor_status",
             "cleanliness_score", "bed_time", "drinking_status", "smoking_status",
             "smoking_score", "drinking_score", "visitor_score", "bedtime_score",
-            "allergy_status", "allergy_score" ]
+            "allergy_status", "allergy_score", "dealBreakers" ]
             writer= csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(userPreferences)
+
+            for row in userPreferences:
+                if isinstance(row["dealBreakers"], list):
+                    row["dealBreakers"] = ",".join(row["dealBreakers"])
+                writer.writerow(row)
 
     
 def load_preferences(filename):
@@ -433,6 +502,11 @@ def load_preferences(filename):
                             row[field] = int(row[field])
                         else:
                             row[field] = 0  #If a field with a score is blank, default to 0 (dont care)
+
+                    if "dealBreakers" in row and row["dealBreakers"].strip() != "":
+                        row["dealBreakers"] = row["dealBreakers"].split(",")
+                    else:
+                        row["dealBreakers"] = []
 
                     userPreferences.append(row)
         return userPreferences
@@ -461,7 +535,7 @@ class preferenceForm(FlaskForm):
                                    ('stimson', 'Stimson'),
                                    ('streit' , 'Streit Perham')],
                                    validators=[DataRequired()])
-        location_status = SelectField('Which location do you prefer to live in?', choices=[("", "Select an option"), ('northside', 'Northside'), ('southside', 'Southside')], validators=[DataRequired()])
+        location_status = SelectField('Which location do you prefer to live in?', choices=[("", "Select an option"), ('northside', 'Northside'), ('southside', 'Southside'), ('hillside', 'Hillside')], validators=[DataRequired()])
         cleanliness_score = IntegerField('How much do you care about cleanliness?', validators=[NumberRange(min= 0, max= 5)])
         bedtime_score = IntegerField('How much do you care about your rommate going to bed around the same time?', validators=[NumberRange(min= 0, max= 5)])
         visitor_score = IntegerField('Do you care if your roommate has visitors?', validators=[NumberRange(min= 0, max= 5)])
@@ -473,4 +547,12 @@ class preferenceForm(FlaskForm):
         location_score = IntegerField('How much do you care about living in the location you selected?', validators=[NumberRange(min= 0, max= 5)])
         allergy_status = SelectField('Do you have any allergies?', choices=[("", "Select an option"), ('yes', 'Yes'), ('no', 'No')], validators=[DataRequired()])
         allergy_score = SelectField('Are you ok changing eating or lifestyle habits to accomadate rommates with allergies? e.g. Not eating peanuts for students with peanut allergy.', choices=[("", "Select an option"), ('yes', 'Yes'), ('no', 'No')], validators=[DataRequired()])
-        submit = SubmitField('Submit')
+        bedDealbreaker = BooleanField('Bed Time')
+        visDealbreaker = BooleanField('Visitors')
+        drinkDealbreaker = BooleanField('Drinking')
+        smokeDealbreaker = BooleanField('Smoking')
+        aniDealbreaker = BooleanField('Animal')
+        dormDealbreaker = BooleanField('Dorm Choice')
+        locDealbreaker = BooleanField('Location Choice')
+        cleanDealbreaker = BooleanField('Cleanliness')
+        quietDealbreaker = BooleanField('Noise')
