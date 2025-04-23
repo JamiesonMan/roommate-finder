@@ -2,47 +2,119 @@
 <html>
 <head>
     <title>Account Creation</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #821919d4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-weight: bold;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        p {
+            margin-top: 20px;
+            color: #333;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            background-color: #821919d4;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #5b5b5b;
+        }
+
+        .flash-message {
+            color: red;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        ul {
+            padding-left: 20px;
+            color: red;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
+    <div class="card">
+        <h1>Account Creation</h1>
 
-    <h1>Account Creation</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class= "flash-message {{ category }}" > {{ message }}</div>
+        <!-- Ensures requirements are met and will alert user if not -->
+        {% if form.username.errors or form.password.errors %}
+        <p>Password or username does not meet length requirements, please try again:</p>
+        <ul>
+            {% for error in form.username.errors %}
+            <li>{{ error }}</li>
             {% endfor %}
+            {% for error in form.password.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
         {% endif %}
-    {% endwith %}
 
-    <!-- Ensures requirements are met and will alert user if not -->
-    {% if form.username.errors or form.password.errors %}
-    <p>Password or username does not meet length requirements, please try again:</p>
-    <ul>
-        {% for error in form.username.errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-        {% for error in form.password.errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+        <form method="POST" action="{{ url_for('create_account') }}">
+            {{ form.hidden_tag() }}
+            <!-- Clears the text from the offending box -->
+            <p>Username (3-30 characters):</p>
+            {{ form.username(value="") }}
 
-    <form method="POST" action="{{ url_for('create_account') }}">
-        {{ form.hidden_tag() }}
-        <!-- Clears the text from the offending box -->
-        <p>Username (3-30 characters):</p>
-        {{ form.username(value="") }}
+            <p>Email (optional):</p>
+            {{ form.email(value="") }}
 
-        <p>Email (optional):</p>
-        {{ form.email(value="") }}
+            <p>Password (6-25 characters):</p>
+            {{ form.password(value="") }}
 
-        <p>Password (6-25 characters):</p>
-        {{ form.password(value="") }}
-
-        <br><br>
-        <button type="submit">Create Account</button>
-    </form>
-
+            <br><br>
+            <button type="submit">Create Account</button>
+        </form>
+        <a href="{{ url_for('home_page') }}">Back to Home</a>
+    </div>
 </body>
 </html>
+

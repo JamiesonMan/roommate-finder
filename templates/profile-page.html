@@ -30,26 +30,107 @@
             alert(result.message);
         }
     </script>
+    <style>
+        body {
+            background-color: #821919d4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 400px;
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        input[type="checkbox"] {
+            margin-top: 10px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            background-color: #821919d4;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #5b5b5b;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <h1>Update Profile</h1>
-    <form action="/update_profile" method="POST" enctype="multipart/form-data">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br>
+    <div class="card">
+        <form action="/update_profile" method="POST" enctype="multipart/form-data">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
 
-        <label for="profilePicture">Profile Picture:</label>
-        <input type="file" id="profilePicture" name="profilePicture"><br>
+            <label for="profilePicture">Profile Picture:</label>
+            <input type="file" id="profilePicture" name="profilePicture">
 
-        <label for="bio">Bio:</label>
-        <textarea id="bio" name="bio" rows="4"></textarea><br>
+            <label for="bio">Bio:</label>
+            <textarea id="bio" name="bio" rows="4"></textarea>
 
-        <label for="lookingStatus">Looking for a roommate:</label>
-        <input type="checkbox" id="lookingStatus" name="lookingStatus"><br>
+            <label>
+                <input type="checkbox" id="lookingStatus" name="lookingStatus">
+                Looking for a roommate
+            </label>
 
-        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />  
-
-        <button type="submit">Update Profile</button>
-    </form>
-    <a href="/dashboard">Return</a>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit">Update Profile</button>
+        </form>
+        <a href="/dashboard">Return to dashboard</a>
+    </div>
 </body>
 </html>
+

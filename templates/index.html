@@ -3,10 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>RoomMate</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #821919d4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-weight: bold;
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 350px;
+        }
+
+        p {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #821919d4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #5b5b5b;
+        }
+    </style>
 </head>
 <body>
-<p>Welcome To RoomMate!</p>
-<button id="createAccount" type = "button" onclick= "window.location.href='/create_account' ; " class="button">Create Account</button>
-<button id="logIn" type = "button" onclick= "window.location.href='/login' ; " class="button">Log In</button>
+    <div class="card">
+        <p>Welcome To RoommateFinder!</p>
+        <button id="createAccount" type="button" onclick="window.location.href='/create_account';" class="button">Create Account</button>
+        <button id="logIn" type="button" onclick="window.location.href='/login';" class="button">Log In</button>
+    </div>
 </body>
 </html>

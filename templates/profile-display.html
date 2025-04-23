@@ -3,29 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <title>Profile Information</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #821919d4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-weight: bold;
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #profileInfo p {
+            color: #333;
+            margin: 12px 0;
+        }
+
+        img#profilePicture {
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        a {
+            display: block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h1>Profile Information</h1>
-    <div id="profileInfo">
-        <p><strong>Name:</strong> <span id="name"></span></p>
-        <p><strong>Bio:</strong> <span id="bio"></span></p>
-        <p><strong>Looking for a roommate:</strong> <span id="lookingStatus"></span></p>
-        <p><strong>Profile Picture:</strong></p>
-        <img id="profilePicture" src="" alt="Profile Picture" width="150">
+    <div class="card">
+        <h1>Profile Information</h1>
+        <div id="profileInfo">
+            <p><strong>Name:</strong> <span id="name"></span></p>
+            <p><strong>Bio:</strong> <span id="bio"></span></p>
+            <p><strong>Looking for a roommate:</strong> <span id="lookingStatus"></span></p>
+            <p><strong>Profile Picture:</strong></p>
+            <img id="profilePicture" src="" alt="Profile Picture" width="150">
+        </div>
+        <a href="/dashboard">Return to dashboard</a>
     </div>
-    <a href="/dashboard">Return</a>
+
     <!--
         This script was streamlined using AI
         It is a JS function that takes the dictionary from /view_profile, converts it into JSON.
         Then fills elements with the appropriate data.
      -->
     <script>
-
         async function fetchProfileInfo() {
             const response = await fetch('/view_profile');
             const data = await response.json();
 
-            document.getElementById('name').innerText = data.Name || "N/A"; // If null the N/A
+            document.getElementById('name').innerText = data.Name || "N/A"; // If null then N/A
             document.getElementById('bio').innerText = data.Bio || "N/A";
             document.getElementById('lookingStatus').innerText = data["Looking for Roommate"] ? "Yes" : "No";
 
@@ -41,3 +88,4 @@
     </script>
 </body>
 </html>
+

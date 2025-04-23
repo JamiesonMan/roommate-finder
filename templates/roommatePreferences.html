@@ -1,16 +1,77 @@
 <!DOCTYPE html>
-
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <title>User Preferences:RoomMate</title>
+    <title>User Preferences: RoomMate</title>
+
+    <style>
+        body {
+            margin: 0;
+            background-color: #821919d4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .form-card {
+            background-color: white;
+            padding: 40px;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            max-width: 750px;
+            width: 100%;
+        }
+
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        form label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input, select {
+            margin-top: 4px;
+            margin-bottom: 16px;
+            padding: 8px;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .button, button[type="submit"] {
+            margin-top: 20px;
+            background-color: #821919d4;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .button:hover, button[type="submit"]:hover {
+            background-color: #5b5b5b;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-    
-    <h1>Roommate Preferences</h1>
+    <div class="form-card">
+        <h1>Roommate Preferences</h1>
 
-    <form method ="POST" action="{{ url_for('prefPage') }}">
-        {{ form.hidden_tag() }}
+        <form method="POST" action="{{ url_for('prefPage') }}">
+            {{ form.hidden_tag() }}
 
     {% set headings = {
         "bed_time": "Please answer some questions about yourself",
@@ -19,15 +80,15 @@
         "bedDealbreaker": "Optional: Deal Breakers;Please choose which of the following categories are dealbreakers for you. People with differing scores on these categories will not show in your matches"
     } %}
 
-    {% for field in form if field.widget.input_type != "hidden" %}
-            {% if field.name in headings %}
-                <h2>{{ headings[field.name] }}</h2>
-            {% endif %}
+            {% for field in form if field.widget.input_type != "hidden" %}
+                {% if field.name in headings %}
+                    <h2>{{ headings[field.name] }}</h2>
+                {% endif %}
 
-            {% if field.type != "SubmitField" %}
-             {{ field.label }}
-            {% endif %}
-            {{ field }}
+                {% if field.type != "SubmitField" %}
+                    {{ field.label }}
+                {% endif %}
+                {{ field }}
 
             {% if field.errors %}
                 <div style="color:red">
