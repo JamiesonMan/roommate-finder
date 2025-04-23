@@ -2,10 +2,91 @@
 <html lang="en">
 <head>
     <title>Inbox</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #821919d4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .chat-button {
+            background-color: #c9a44b;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .chat-button:hover {
+            background-color: #c9a34b9e;
+        }
+
+        .form-card {
+            background-color: white;
+            padding: 40px;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            max-width: 750px;
+            width: 100%;
+        }
+
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        form label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input, select {
+            margin-top: 4px;
+            margin-bottom: 16px;
+            padding: 8px;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .button, button[type="submit"] {
+            margin-top: 20px;
+            background-color: #821919d4;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .button:hover, button[type="submit"]:hover {
+            background-color: #5b5b5b;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
+    <div class="from-card">
     <h2>Signed in as {{ username }}</h2>
+    <br>
     <h2>Your Chats</h2>
+    <br>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -23,15 +104,18 @@
                 {% else %}
                     {% set otherUser = chat["user1"] %}
                 {% endif %}
-                <li><a href="/chat_messages/{{ chat["chatID"] }}">{{ otherUser }}</a></li>
+                <li><button class="chat-button" onclick="window.location.href='/chat_messages/{{ chat['chatID'] }}';">{{ otherUser }}</button></li>
             {% endfor %}
         {% else %}
             <li>No chats available.</li>
         {% endif %}
     </ul>
+    <br>
 
     <button id="home" type = "button" onclick= "window.location.href='/new_chat' ; " class="button">New Chat</button>
+    <br>
+    <button id="dashboard" type = "button" onclick= "window.location.href='/dashboard' ; " class="button">Return to Dashboard</button>
+    </div>
 
 </body>
-<a href="/dashboard">Return to Dashboard</a>
 </html>
