@@ -260,7 +260,7 @@ def login():
             if username_exists(username):
                 if checkPassword(get_userID(username), password):
                     userID = get_userID(username)
-                    userPref = roommatePreferences(userID=userID, username=username)
+                    userPref = roommatePreferences(userID=userID)
                     session["user"] = pickle.dumps({
                     "userPref": userPref,
                     "userName": username
@@ -316,14 +316,21 @@ def create_account():
         #Append the new account to the database
         enter_user_to_database(user_id, username, email, hashed_password)
 
+        #Creates default empty preferences for new user
+        prefs = roommatePreferences(userID=user_id)
+        prefs.username = username
+        existing_prefs = load_preferences("userPreferences.csv")
+        prefs.update_user(existing_prefs)
+
         flash("Account created successfully!", "success")
         return redirect(url_for('login'))  #Redirect after successful creation to homepage, (should take user to login page if thats not the homepage)(decided to redirect them to preference page so that they would have to fill that out once they create an account can change later)
 
     return render_template('account_creation.html', form=form)
 
-@app.route('/preferences', methods = ['GET', 'POST'])
+@app.route('/preferences', methods=['GET', 'POST'])
 def prefPage():
         if "user"in session: 
+            form = preferenceForm()
 
             user = pickle.loads(session["user"])
             userPref = user["userPref"]
@@ -331,25 +338,25 @@ def prefPage():
 
 
             if isinstance(userPref.bed_time, str):
-                try:
-                    userPref.bed_time = datetime.strptime(userPref.bed_time, "%H:%M").time()
-                except ValueError:
-                    userPref.bed_time = datetime.strptime("00:00", "%H:%M").time()
+                    try:
+                        userPref.bed_time = datetime.strptime(userPref.bed_time, "%H:%M").time()
+                    except ValueError:
+                        userPref.bed_time = datetime.strptime("00:00", "%H:%M").time()
 
             form = preferenceForm(obj=userPref)
-             
-        
+                
+            
             if request.method == "GET":
-                 form.bedDealbreaker.data = "bedtime" in userPref.dealBreakerList
-                 form.visDealbreaker.data = "visitor" in userPref.dealBreakerList
-                 form.drinkDealbreaker.data = "drinking" in userPref.dealBreakerList
-                 form.smokeDealbreaker.data = "smoking" in userPref.dealBreakerList
-                 form.aniDealbreaker.data = "animal" in userPref.dealBreakerList
-                 form.dormDealbreaker.data = "dorm" in userPref.dealBreakerList
-                 form.locDealbreaker.data = "location" in userPref.dealBreakerList
-                 form.cleanDealbreaker.data = "cleanliness" in userPref.dealBreakerList
-                 form.quietDealbreaker.data = "quiet" in userPref.dealBreakerList
-             
+                    form.bedDealbreaker.data = "bedtime" in userPref.dealBreakerList
+                    form.visDealbreaker.data = "visitor" in userPref.dealBreakerList
+                    form.drinkDealbreaker.data = "drinking" in userPref.dealBreakerList
+                    form.smokeDealbreaker.data = "smoking" in userPref.dealBreakerList
+                    form.aniDealbreaker.data = "animal" in userPref.dealBreakerList
+                    form.dormDealbreaker.data = "dorm" in userPref.dealBreakerList
+                    form.locDealbreaker.data = "location" in userPref.dealBreakerList
+                    form.cleanDealbreaker.data = "cleanliness" in userPref.dealBreakerList
+                    form.quietDealbreaker.data = "quiet" in userPref.dealBreakerList
+                
             
 
 
@@ -377,7 +384,7 @@ def prefPage():
                                         animal_status, animal_score, visitor_status, 
                                         cleanliness_score, bed_time, drinking_status, smoking_status, 
                                         smoking_score, drinking_score, visitor_score, bedtime_score, 
-                                        allergy_status, allergy_score, user["userName"])
+                                        allergy_status, allergy_score, userPref.favorites, user["userName"])
                 session["user"] = pickle.dumps({
                     "userName": user["userName"],
                     "userPref": userPref
@@ -480,26 +487,70 @@ def view_feed():
                     #stopping here for now, will add profile pics/user bios next sprint
                 })
 
-    sort_by = request.args.get("sort", "score")  #grabs sort type from URL, score is default if user doesnt specify
+    #for searching for a specific user by username (case sensitive for now)
+    user_search = request.args.get("search")
+    sort_by = request.args.get("sort", "score") #prevents crashing when searching
 
-    if sort_by == "score":
-        feed = sorted(profile_feed, key=lambda x: x["score"], reverse=True) #sorts pref dict by compute compatability descending
-    elif sort_by == "newest":
-        feed = sorted(profile_feed, key=lambda x: int(x["userID"]), reverse=True) #sorts dict by ID descending, IDs are given incrementally so it = newest profiles 1st
-    elif sort_by == "random":
-        feed = profile_feed.copy()
-        random.shuffle(feed)
+    if user_search:
+        feed = []
+        for prof in profile_feed:
+            if prof["username"] == user_search:
+                feed.append(prof)
+        if not feed:
+            flash("User not found, showing full feed.")
+            feed = profile_feed.copy()
+            sort_by = "score"   #default to score if no user found
+            return redirect(url_for('view_feed'))
+
+    else:
+        sort_by = request.args.get("sort", "score")  #grabs sort type from URL, score is default if user doesnt specify
+
+        if sort_by == "score":
+            feed = sorted(profile_feed, key=lambda x: x["score"], reverse=True) #sorts pref dict by compute compatability descending
+        elif sort_by == "newest":
+            feed = sorted(profile_feed, key=lambda x: int(x["userID"]), reverse=True) #sorts dict by ID descending, IDs are given incrementally so it = newest profiles 1st
+        elif sort_by == "random":
+            feed = profile_feed.copy()
+            random.shuffle(feed)
+        elif sort_by == "favorites":
+            feed = [prof for prof in profile_feed if prof["userID"] in current_user_pref.favorites]
+            if not feed:
+                flash("No favorites found, showing all profiles instead.")
+                return redirect(url_for('view_feed', sort='score'))
+
 
     index = int(request.args.get("index", 0)) #for URL indexing for arrow key buttons to go next/prev profile
-    num_profiles = len(feed)
 
     #limiting URL index between 0 and total profiles minus self
-    index = max(0, min(index, num_profiles - 1))
+    index = max(0, min(index, len(feed) - 1))
 
     
     current_profile = feed[index]
+  
+    return render_template("profile_feed.html", user=current_profile, index=index, total=len(feed), current_user_pref=current_user_pref, sort_by=sort_by) #jinja
 
-    return render_template("profile_feed.html", user=current_profile, index=index, total=len(feed)) #jinja    
+
+@app.route('/favorite/<user_id>', methods=['POST'])
+def favorite_user(user_id):
+    user = pickle.loads(session["user"])
+    current_user_pref = user["userPref"]
+
+    if current_user_pref.favorites is None:
+        current_user_pref.favorites = []
+
+    #add/remove profile to fav list
+    if user_id in current_user_pref.favorites:
+        current_user_pref.favorites.remove(user_id)
+    else:
+        current_user_pref.favorites.append(user_id)
+
+    #just update favs in database, nothing else
+    current_user_pref.update_favorites()
+
+    user["userPref"] = current_user_pref
+    session["user"] = pickle.dumps(user)
+
+    return redirect(request.referrer)  #redirects back to feed after (un)favoriting
 
 
 if __name__ == "__main__":
