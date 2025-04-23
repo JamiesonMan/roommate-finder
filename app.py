@@ -260,7 +260,7 @@ def login():
             if username_exists(username):
                 if checkPassword(get_userID(username), password):
                     userID = get_userID(username)
-                    userPref = roommatePreferences(userID=userID)
+                    userPref = roommatePreferences(userID=userID, username=username)
                     session["user"] = pickle.dumps({
                     "userPref": userPref,
                     "userName": username
@@ -534,6 +534,7 @@ def view_feed():
 def favorite_user(user_id):
     user = pickle.loads(session["user"])
     current_user_pref = user["userPref"]
+    print(current_user_pref.__dict__)
 
     if current_user_pref.favorites is None:
         current_user_pref.favorites = []

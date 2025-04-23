@@ -6,14 +6,16 @@ import csv
 
 #class to hold user preference information while logged in for easy acess and calculations
 class roommatePreferences:
-    def __init__(self, userID=0):
+    def __init__(self, userID=0, username = None):
         self.userID = userID
+        self.username = username
         self.set_defaults()
 
         userPref = load_preferences("userPreferences.csv")
         found = self.find_user(userPref)
         if found:
             self.dealBreakerList = found["dealBreakers"]
+            print(found["favorites"])
             self.updatePreferences(
                 int(found["quiet_score"]),
                 found["location_status"],
@@ -33,6 +35,7 @@ class roommatePreferences:
                 int(found["bedtime_score"]),
                 found["allergy_status"],
                 found["allergy_score"],
+                found["favorites"],
                 found["username"] )
         
         elif cleanliness_score != "empty":
@@ -41,7 +44,7 @@ class roommatePreferences:
                 visitor_status, int(cleanliness_score), datetime.strptime(bed_time, "%H:%M:%S").time(),
                 drinking_status, smoking_status, int(smoking_score),
                 int(drinking_score), int(visitor_score), int(bedtime_score),
-                allergy_status, allergy_score, username)
+                allergy_status, allergy_score, self.favorites, username)
         else:
             #default values to prevent crashing
             self.quiet_score = 0
@@ -63,6 +66,7 @@ class roommatePreferences:
             self.allergy_status = allergy_status
             self.allergy_score = allergy_score
             self.dealBreakerList = []
+            self.favorites = []
             
     #The old constructor was messing stuff up with func/database integration and was writting even when reading from db was desired
     def load_pref_data(self):
@@ -88,6 +92,7 @@ class roommatePreferences:
                 self.allergy_status = pref["allergy_status"]
                 self.allergy_score = pref["allergy_score"]
                 self.dealBreakerList = pref["dealBreakers"]
+                self.favorites = pref["favorites"]
                 return
 
         #No user found, use default values
@@ -135,6 +140,8 @@ class roommatePreferences:
         self.bedtime_score = int(pref["bedtime_score"])
         self.allergy_status = pref["allergy_status"]
         self.allergy_score = pref["allergy_score"]
+        print("loading from dictionary")
+        print(pref.get("favorites", []))
         self.favorites = pref.get("favorites", [])
 
 
@@ -438,7 +445,7 @@ class roommatePreferences:
                 "bedtime_score": int(self.bedtime_score),
                 "allergy_status": self.allergy_status,
                 "allergy_score": self.allergy_score,
-                "dealBreakers": self.dealBreakerList
+                "dealBreakers": self.dealBreakerList,
                 "favorites" : self.favorites
             })
 
@@ -509,7 +516,7 @@ class roommatePreferences:
             #favorites is str in csv, changed into list for dict
             if isinstance(pref_copy.get("favorites"), list):
                 pref_copy["favorites"] = ",".join(pref_copy["favorites"])
-                if isinstance(pref_copy.get("dealBreakers"), list):
+            if isinstance(pref_copy.get("dealBreakers"), list):
                 pref_copy["dealBreakers"] = ",".join(pref_copy["dealBreakers"])
             prefs_to_save.append(pref_copy)
 
