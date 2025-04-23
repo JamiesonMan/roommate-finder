@@ -138,7 +138,7 @@ def load_messages_from_csv(filename='messages.csv', chats=[], username="\n"):
                     continue 
                 msg = Message.from_dict(row)
 
-                if(str(username) == str(msg.sender) or str(username) == str(msg.receiver)):
-                    if msg.chatID not in chats:
+                
+                if msg.chatID not in chats:
                         chats[msg.chatID] = Chat(msg.chatID, msg.sender, msg.receiver, messages=[])
-                    chats[msg.chatID].messages.append(msg)
+                chats[msg.chatID].messages.append(msg)

@@ -167,27 +167,26 @@ def agreement_submit():
 
     return redirect(url_for("inbox"))
 
-@app.route('/chat_messages/<chatID>', methods=['GET', 'POST'])
+@app.route('/chat_messages/<chatID>', methods = ['GET', 'POST'])
 def chat_messages(chatID):
-    if "user" in session:
+     if "user" in session:
         user = pickle.loads(session["user"])
         username = user["userName"]
 
         for chat in chats.values():
             if chat.chatID == int(chatID):
-                if chat.user1 == username:
+               if chat.user1 == username:
                     receiver = chat.user2
                     break
-                else:
-                    receiver = chat.user1
-                    break
-
+               else:
+                   receiver = chat.user1
+                   break
+               
         messages_dict = [msg.to_dict() for msg in chat.messages]
 
-        return render_template('chat.html', username=username, chatID=chatID, otherUser=receiver,
-                               messages=messages_dict)
-    else:
-        return redirect(url_for("login"))
+        return render_template('chat.html', username=username, chatID=chatID, otherUser=receiver, messages=messages_dict)
+     else:
+        return redirect(url_for("login"))   
 
 
 @socketio.on('join')
@@ -199,6 +198,9 @@ def on_join(data):
 @socketio.on('message')
 def handle_message(data):
 
+    chatID = int(data['chatID'])
+    sender = data['sender']
+    receiver = data['receiver']
     messageContents = data['message']
 
     if chatID not in chats:
@@ -415,7 +417,7 @@ def update_profile():
 
     profile.update_status(looking_status)
 
-    return jsonify({"message": "Profile updated successfully!"})
+    return redirect(url_for('dashboard'))
 
 @app.route('/profile_info')
 def profile_info():

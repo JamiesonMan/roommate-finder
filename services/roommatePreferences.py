@@ -38,13 +38,13 @@ class roommatePreferences:
                 found["favorites"],
                 found["username"] )
         
-        elif cleanliness_score != "empty":
-            self.updatePreferences(int(quiet_score), location_status, int(location_score),
-                dorm_status, int(dorm_score), animal_status, int(animal_score),
-                visitor_status, int(cleanliness_score), datetime.strptime(bed_time, "%H:%M:%S").time(),
-                drinking_status, smoking_status, int(smoking_score),
-                int(drinking_score), int(visitor_score), int(bedtime_score),
-                allergy_status, allergy_score, self.favorites, username)
+        elif self.cleanliness_score != "empty":
+            self.updatePreferences(int(self.quiet_score), self.location_status, int(self.location_score),
+                self.dorm_status, int(self.dorm_score), self.animal_status, int(self.animal_score),
+                self.visitor_status, int(self.cleanliness_score), self.bed_time,
+                self.drinking_status, self.smoking_status, int(self.smoking_score),
+                int(self.drinking_score), int(self.visitor_score), int(self.bedtime_score),
+                self.allergy_status, self.allergy_score, self.favorites, username)
         else:
             #default values to prevent crashing
             self.quiet_score = 0

@@ -99,13 +99,16 @@
     <ul>
         {% if chats %}
             {% for chat in chats %}
-                {% if chat["user1"] == username %}
-                    {% set otherUser = chat["user2"] %}
-                {% else %}
-                    {% set otherUser = chat["user1"] %}
+                {% if chat["user1"] == username or chat["user2"] == username %}
+                    {% if chat["user1"] == username %}
+                        {% set otherUser = chat["user2"] %}
+                    {% else %}
+                        {% set otherUser = chat["user1"] %}
+                    {% endif %}
+                    <li><button class="chat-button" onclick="window.location.href='/chat_messages/{{ chat['chatID'] }}';">{{ otherUser }}</button></li>
                 {% endif %}
-                <li><button class="chat-button" onclick="window.location.href='/chat_messages/{{ chat['chatID'] }}';">{{ otherUser }}</button></li>
             {% endfor %}
+                
         {% else %}
             <li>No chats available.</li>
         {% endif %}
